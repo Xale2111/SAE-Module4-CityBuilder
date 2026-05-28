@@ -7,6 +7,7 @@
 #include "../../api/include/graphics/tilesheet.h"
 #include "tilemap.h"
 #include "menu/menu.h"
+#include "camera/camera.h"
 
 namespace game {
 
@@ -15,17 +16,17 @@ sf::RenderWindow window_;
 
 Tilemap tilemap_;
 menu::menu mainMenu_;
+Camera camera_;
 
-const int kScreenWidth = 1920;
-const int kScreenHeight = 1080;
 
 void Setup() {
 
   // Create the main window
   //window_.create(sf::VideoMode({1920, 1080}), "City Builder de fou malade avec des explosions !!",sf::State::Fullscreen);
-  window_.create(sf::VideoMode({kScreenWidth, kScreenHeight}), "City Builder de fou malade avec des explosions !!");
+  window_.create(sf::VideoMode({DataUtils::kScreenWidth, DataUtils::kScreenHeight}), "City Builder de fou malade avec des explosions !!");
   srand(time(NULL));
-  tilemap_.Setup({6400,6400}, {64,64});
+  tilemap_.Setup({DataUtils::kTilemapWidth,DataUtils::kTilemapHeight}, {64,64});
+  camera_.SetupView({DataUtils::kScreenWidth,DataUtils::kScreenHeight}, {DataUtils::kTilemapWidth/2,DataUtils::kTilemapHeight/2});
 }
 
 ActionCode LoopMenu()
@@ -61,19 +62,15 @@ ActionCode LoopMenu()
 ActionCode LoopGame() {
   Setup();
 
-  sf::View view({kScreenWidth/2,kScreenHeight/2},{kScreenWidth,kScreenHeight});
-  float zoomFactor = .9f;
-  float dezoomFactor = 1.1f;
+
   /*TODO :
    * rajouter un maxZoom et un minZoom
    * se baser sur le zoom actuel pour définir la vitesse du drag
    *
    * */
 
-  bool isDragging_ = false;
-  sf::Vector2i lastMousePos_;
 
-  window_.setView(view);
+  window_.setView(camera_.GetView());
 
   // Start the game loop
   while (window_.isOpen()) {
@@ -85,48 +82,8 @@ ActionCode LoopGame() {
       if (event->is<sf::Event::Closed>()) {
         window_.close();
       }
-      if(const auto* scroll = event->getIf<sf::Event::MouseWheelScrolled>())
-      {
-        float delta = scroll->delta;
+      camera_.HandleMouse(*event, window_);
 
-        if(delta > 0)
-        {
-          view.zoom(zoomFactor);
-        }
-        else
-        {
-          view.zoom(dezoomFactor);
-        }
-        window_.setView(view);
-      }
-      if (const auto* press = event->getIf<sf::Event::MouseButtonPressed>())
-      {
-        if (press->button == sf::Mouse::Button::Left)
-        {
-          isDragging_ = true;
-          lastMousePos_ = sf::Mouse::getPosition(window_);
-        }
-      }
-
-      if (const auto* release = event->getIf<sf::Event::MouseButtonReleased>())
-      {
-        if (release->button == sf::Mouse::Button::Left)
-          isDragging_ = false;
-      }
-
-      if (const auto* move = event->getIf<sf::Event::MouseMoved>())
-      {
-        if (isDragging_)
-        {
-          sf::Vector2i currentPos = sf::Mouse::getPosition(window_);
-          sf::Vector2i delta = currentPos - lastMousePos_;
-
-          view.move(sf::Vector2f(-delta.x, -delta.y)); // négatif = sens naturel du drag
-          lastMousePos_ = currentPos;
-
-          window_.setView(view);
-        }
-      }
 
     }
 

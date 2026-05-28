@@ -5,7 +5,7 @@ using namespace game;
 
 int main() {
 
-  ActionCode actionCode = ActionCode::kPlay;
+  ActionCode actionCode = ActionCode::kMenu;
 
   do {
     switch (actionCode) {
