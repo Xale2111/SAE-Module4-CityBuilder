@@ -13,11 +13,9 @@ constexpr int kScreenHeight = 600;
 constexpr int buttonWidth = 300;
 constexpr int buttonHeight = 180;
 
-
-void menu::Start(sf::RenderWindow& window) {
-  if(!menuFont.openFromFile("_assets/fonts/ShareTech-Regular.ttf"))
-  {
-    std::cout << "Menu font didn't load" << std::endl;
+void menu::Start(sf::RenderWindow &window) {
+  if (!menu_font_.openFromFile("_assets/fonts/ShareTech-Regular.ttf")) {
+    std::cerr << "Failed to load main menu font";
   }
 
   window.create(sf::VideoMode({kScreenWidth, kScreenHeight}), "City Builder de fou malade avec des explosions !!");
@@ -26,62 +24,60 @@ void menu::Start(sf::RenderWindow& window) {
 }
 
 void menu::Draw(sf::RenderWindow &window) {
-  startButton.Draw(window);
-  quitButton.Draw(window);
+  start_button_.Draw(window);
+  quit_button_.Draw(window);
 }
 
 void menu::HandleButtonsStates(sf::RenderWindow &window) {
-  startButton.CheckHover(sf::Vector2f (sf::Mouse::getPosition(window)));
-  startButton.HandleState();
+  start_button_.CheckHover(sf::Vector2f(sf::Mouse::getPosition(window)));
+  start_button_.HandleState();
 
-  quitButton.CheckHover(sf::Vector2f (sf::Mouse::getPosition(window)));
-  quitButton.HandleState();
+  quit_button_.CheckHover(sf::Vector2f(sf::Mouse::getPosition(window)));
+  quit_button_.HandleState();
 }
 
-ActionCode menu::HandleInput(const std::optional<sf::Event>& event) {
-  startButton.HandleInput(event);
-  quitButton.HandleInput(event);
+ActionCode menu::HandleInput(const std::optional<sf::Event> &event) {
+  start_button_.HandleInput(event);
+  quit_button_.HandleInput(event);
 
-  if(startButton.HasBeenPressed())
-  {
-    startButton.ResetPressState();
-    return startButton.GetActionCode();
+  if (start_button_.has_been_pressed()) {
+    start_button_.ResetPressState();
+    return start_button_.get_action_code();
   }
 
-  if(quitButton.HasBeenPressed())
-  {
-    quitButton.ResetPressState();
-    return quitButton.GetActionCode();
+  if (quit_button_.has_been_pressed()) {
+    quit_button_.ResetPressState();
+    return quit_button_.get_action_code();
   }
 
   return ActionCode::kMenu;
 }
 void menu::SetupStartButton() {
-  startButton.SetFont(menuFont, 50);
-  startButton.SetFontColor(sf::Color::Black);
-  startButton.SetFontHoverColor(sf::Color::White);
-  startButton.SetText("Play");
-  startButton.SetSize({buttonWidth,buttonHeight});
-  startButton.SetPosition({kScreenWidth*.25,kScreenHeight*.25});
-  startButton.SetFillColor(sf::Color{128,255,255});
-  startButton.SetHoverColor(sf::Color{0,153,184});
-  startButton.SetPressColor(sf::Color{0,102,128});
-  startButton.SetActionCode(ActionCode::kPlay);
-  startButton.ResetPressState();
+  start_button_.set_font(menu_font_, 50);
+  start_button_.set_font_color(sf::Color::Black);
+  start_button_.set_font_hover_color(sf::Color::White);
+  start_button_.set_text("Play");
+  start_button_.set_size({buttonWidth, buttonHeight});
+  start_button_.set_position({kScreenWidth * .25, kScreenHeight * .25});
+  start_button_.set_fill_color(sf::Color{128, 255, 255});
+  start_button_.set_hover_color(sf::Color{0, 153, 184});
+  start_button_.set_pressed_color(sf::Color{0, 102, 128});
+  start_button_.set_action_code(ActionCode::kPlay);
+  start_button_.ResetPressState();
 }
 
 void menu::SetupQuitButton() {
 
-  quitButton.SetFont(menuFont, 50);
-  quitButton.SetFontColor(sf::Color::Black);
-  quitButton.SetFontHoverColor(sf::Color::White);
-  quitButton.SetText("Quit");
-  quitButton.SetSize({buttonWidth,buttonHeight});
-  quitButton.SetPosition({kScreenWidth*.25,kScreenHeight*.75});
-  quitButton.SetFillColor(sf::Color{128,255,255});
-  quitButton.SetHoverColor(sf::Color{0,153,184});
-  quitButton.SetPressColor(sf::Color{0,102,128});
-  quitButton.SetActionCode(ActionCode::kQuit);
-  quitButton.ResetPressState();
+  quit_button_.set_font(menu_font_, 50);
+  quit_button_.set_font_color(sf::Color::Black);
+  quit_button_.set_font_hover_color(sf::Color::White);
+  quit_button_.set_text("Quit");
+  quit_button_.set_size({buttonWidth, buttonHeight});
+  quit_button_.set_position({kScreenWidth * .25, kScreenHeight * .75});
+  quit_button_.set_fill_color(sf::Color{128, 255, 255});
+  quit_button_.set_hover_color(sf::Color{0, 153, 184});
+  quit_button_.set_pressed_color(sf::Color{0, 102, 128});
+  quit_button_.set_action_code(ActionCode::kQuit);
+  quit_button_.ResetPressState();
 }
 }

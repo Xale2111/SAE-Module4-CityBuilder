@@ -10,54 +10,52 @@
 #include <SFML/Graphics/Text.hpp>
 #include <SFML/Window/Event.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
-#include "DataUtils.h"
+#include "data_utils.h"
 
+namespace menu {
+class Button {
+ public:
+  void Draw(sf::RenderWindow &window) const;
 
-namespace menu{
-class Button
-{
+  void HandleInput(const std::optional<sf::Event> &event);
+  void CheckHover(sf::Vector2f mousePosition);
+  void HandleState();
+
+  [[nodiscard]] bool has_been_pressed() const;
+  void ResetPressState();
+
+  void set_text(std::string_view new_text);
+  void set_size(sf::Vector2f new_size);
+  void set_fill_color(sf::Color new_color);
+  void set_hover_color(sf::Color new_color);
+  void set_pressed_color(sf::Color new_color);
+  void set_position(sf::Vector2f new_position);
+  void set_outline(int new_size, sf::Color new_color);
+
+  void set_font(sf::Font &new_font, int new_size);
+  void set_font_color(sf::Color new_color);
+  void set_font_hover_color(sf::Color new_color);
+
+  void set_action_code(ActionCode new_action);
+  [[nodiscard]] ActionCode get_action_code() const;
+
  private:
   sf::RectangleShape shape_;
   std::optional<sf::Text> text_;
 
-  sf::Color fillColor_;
-  sf::Color pressColor_;
-  sf::Color hoverColor_;
+  sf::Color fill_color_;
+  sf::Color press_color_;
+  sf::Color hover_color_;
 
-  sf::Color textColor_;
-  sf::Color textHoverColor_;
+  sf::Color text_color_;
+  sf::Color text_hover_color_;
 
-  bool isPressed_ = false;
-  bool hasBeenPressed_ = false;
-  bool isMouseHover_ = false;
+  bool is_pressed_ = false;
+  bool has_been_pressed_ = false;
+  bool is_mouse_hover_ = false;
 
-  ActionCode actionCode_;
+  ActionCode action_code_;
 
- public:
-  void Draw(sf::RenderWindow &window) const;
-
-
-  void HandleInput(const std::optional<sf::Event>& event);
-  bool CheckHover(sf::Vector2f mousePosition);
-  void HandleState();
-
-  bool HasBeenPressed();
-  void ResetPressState();
-
-  void SetText(std::string text);
-  void SetSize(sf::Vector2f size);
-  void SetFillColor(sf::Color color);
-  void SetHoverColor(sf::Color color);
-  void SetPressColor(sf::Color color);
-  void SetPosition(sf::Vector2f position);
-  void SetOutline(int size, sf::Color color);
-
-  void SetFont(sf::Font& font,int size);
-  void SetFontColor(sf::Color color);
-  void SetFontHoverColor(sf::Color color);
-
-  void SetActionCode(ActionCode action);
-  ActionCode GetActionCode();
 };
 
 }

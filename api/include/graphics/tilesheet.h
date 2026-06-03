@@ -11,43 +11,37 @@
 
 namespace graphics {
 
-  template <typename T>
-  class TileSheet
-  {
-   private:
-      std::unordered_map<T, sf::FloatRect> tile_rects;
-      sf::Texture texture;
-      int tile_step_ = 0;
+template<typename T>
+class TileSheet {
+ public:
+  [[nodiscard]] bool InitTileSheet(std::string_view path, int tile_step) {
+    tile_step_ = tile_step;
+    return texture.loadFromFile(path);
+  }
 
-    static sf::FloatRect ConstructRect(float xIdx, float yIdx, float width, float height) {
-      return {{width * xIdx, yIdx * height}, {width, height}};
+  void AddTile(T type, int xIdx, int yIdx) {
+    tile_rects[type] = ConstructRect(xIdx, yIdx, tile_step_, tile_step_);
+  }
+
+  [[nodiscard]] sf::FloatRect GetBounds(T type) {
+    if (tile_rects.contains(type)) {
+      return tile_rects.at(type);
     }
+    return {};
+  }
 
-   public:
-    bool InitTileSheet(std::string_view path, int tile_step)
-    {
-      tile_step_ = tile_step;
-      return texture.loadFromFile(path);
-    }
+  [[nodiscard]] sf::Texture *GetTexture() { return &texture; };
 
-    void AddTile(T type, int xIdx, int yIdx)
-    {
-        tile_rects[type] = ConstructRect(xIdx, yIdx, tile_step_, tile_step_);
-    }
+ private:
+  std::unordered_map<T, sf::FloatRect> tile_rects;
+  sf::Texture texture;
+  int tile_step_ = 0;
 
-    sf::FloatRect GetBounds(T type)
-    {
-      if(tile_rects.contains(type))
-      {
-        return tile_rects.at(type);
-      }
-      return {};
-    }
+  [[nodiscard]] static sf::FloatRect ConstructRect(float xIdx, float yIdx, float width, float height) {
+    return {{width * xIdx, yIdx * height}, {width, height}};
+  }
 
-    sf::Texture* GetTexture(){return &texture;};
-
-  };
-
+};
 
 }
 

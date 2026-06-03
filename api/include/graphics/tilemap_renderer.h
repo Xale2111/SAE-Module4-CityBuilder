@@ -10,6 +10,11 @@
 
 namespace graphics {
 class TilemapRenderer {
+ public:
+  void AddTile(sf::Vector2f pos, sf::Vector2f offset, sf::FloatRect texBounds);
+  void Draw(sf::RenderWindow &window) const;
+  void SetTexture(sf::Texture *texture);
+  void Clear();
 
  private:
   const sf::Color color = sf::Color::White;
@@ -19,11 +24,6 @@ class TilemapRenderer {
   sf::Texture *texture_ = nullptr;
   sf::VertexArray vertices_ = sf::VertexArray(sf::PrimitiveType::Triangles);
 
- public:
-  void AddTile(sf::Vector2f pos, sf::Vector2f offset, sf::FloatRect texBounds);
-  void Draw(sf::RenderWindow &window) const;
-  void SetTexture(sf::Texture *texture);
-  void Clear();
 };
 }
 

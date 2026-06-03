@@ -6,12 +6,12 @@
 #define SAE_ALEXK_CITYBUILDER_GAME_H
 #include <iostream>
 #include "SFML/Graphics.hpp"
-#include "DataUtils.h"
+#include "data_utils.h"
 
 namespace game {
 void Setup();
-ActionCode LoopMenu();
-ActionCode LoopGame();
+[[nodiscard]] ActionCode LoopMenu();
+[[nodiscard]] ActionCode LoopGame();
 
 }
 

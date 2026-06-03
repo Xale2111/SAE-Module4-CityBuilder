@@ -26,42 +26,31 @@ enum class ResourcesTiles {
   kFood,
 };
 
-enum class BuildingsTiles{
+enum class BuildingsTiles {
   kLumberjack,
   kMinor,
   kGatherer,
   kFoodHall
 };
 
+class Tilemap {
+ public :
+  void Setup(sf::Vector2f gridSize, sf::Vector2f gridOffset, int seed = 1067);
+  void Draw(sf::RenderWindow &window);
 
-class Tilemap{
  private :
-  graphics::TilemapRenderer groundRenderer_;
-  graphics::TilemapRenderer resourcesRenderer_;
-  graphics::TilemapRenderer buildingsRenderer_;
-  graphics::TileSheet<BackgroundTiles> groundTileSheet_;
-  graphics::TileSheet<ResourcesTiles> resourcesTileSheet_;
-  graphics::TileSheet<BuildingsTiles> buildingsTileSheet_;
+  graphics::TilemapRenderer ground_renderer_;
+  graphics::TilemapRenderer resources_renderer_;
+  graphics::TilemapRenderer buildings_renderer_;
+  graphics::TileSheet<BackgroundTiles> ground_tile_sheet_;
+  graphics::TileSheet<ResourcesTiles> resources_tile_sheet_;
+  graphics::TileSheet<BuildingsTiles> buildings_tile_sheet_;
 
-  int GetSampleIndex(int sampleSize,int percent);
+  [[nodiscard]] int GetSampleIndex(int sampleSize, int percent) const;
 
   void AddResourcesTileBasedOnBiome(sf::Vector2f gridSize, sf::Vector2f gridOffset, Biome::Biome biome);
 
 
 
- public :
-  void Setup(sf::Vector2f gridSize, sf::Vector2f gridOffset, int seed = 1067);
-  void Draw(sf::RenderWindow &window);
-
-
 };
-/*
-void GenerateTilemap()
-{
-  FastNoiseLite noise;
-
-  noise.GetNoise(1.f,1.f);
-}
-*/
-
 #endif //SAE_ALEXK_CITYBUILDER_API_INCLUDE_GRAPHICS_TILEMAP_H_

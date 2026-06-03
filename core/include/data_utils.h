@@ -2,9 +2,9 @@
 // Created by alexk on 28.05.2026.
 //
 
-#ifndef SAE_ALEXK_CITYBUILDER_CORE_INCLUDE_DATAUTILS_H_
-#define SAE_ALEXK_CITYBUILDER_CORE_INCLUDE_DATAUTILS_H_
-enum class ActionCode{
+#ifndef SAE_ALEXK_CITYBUILDER_CORE_INCLUDE_DATA_UTILS_H_
+#define SAE_ALEXK_CITYBUILDER_CORE_INCLUDE_DATA_UTILS_H_
+enum class ActionCode {
   kPlay,
   kMenu,
   kPause,
@@ -12,8 +12,7 @@ enum class ActionCode{
   kQuit,
 };
 
-class DataUtils
-{
+ class DataUtils {
  public :
   static constexpr int kScreenWidth = 1920;
   static constexpr int kScreenHeight = 1080;
@@ -22,4 +21,4 @@ class DataUtils
   static constexpr int kTilemapHeight = 5000;
 
 };
-#endif //SAE_ALEXK_CITYBUILDER_CORE_INCLUDE_DATAUTILS_H_
+#endif //SAE_ALEXK_CITYBUILDER_CORE_INCLUDE_DATA_UTILS_H_

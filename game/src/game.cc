@@ -3,34 +3,35 @@
 //
 
 #include "game.h"
-#include "../../api/include/graphics/tilemap_renderer.h"
-#include "../../api/include/graphics/tilesheet.h"
+#include "graphics/tilemap_renderer.h"
+#include "graphics/tilesheet.h"
 #include "tilemap.h"
 #include "menu/menu.h"
 #include "camera/camera.h"
 
 namespace game {
-
+namespace {
 sf::Clock clock;
 sf::RenderWindow window_;
 
 Tilemap tilemap_;
 menu::menu mainMenu_;
 Camera camera_;
-
+}
 
 void Setup() {
 
   // Create the main window
   //window_.create(sf::VideoMode({1920, 1080}), "City Builder de fou malade avec des explosions !!",sf::State::Fullscreen);
-  window_.create(sf::VideoMode({DataUtils::kScreenWidth, DataUtils::kScreenHeight}), "City Builder de fou malade avec des explosions !!");
+  window_.create(sf::VideoMode({DataUtils::kScreenWidth, DataUtils::kScreenHeight}),
+                 "City Builder de fou malade avec des explosions !!");
   srand(time(NULL));
-  tilemap_.Setup({DataUtils::kTilemapWidth,DataUtils::kTilemapHeight}, {64,64});
-  camera_.SetupView({DataUtils::kScreenWidth,DataUtils::kScreenHeight}, {DataUtils::kTilemapWidth/2,DataUtils::kTilemapHeight/2});
+  tilemap_.Setup({DataUtils::kTilemapWidth, DataUtils::kTilemapHeight}, {64, 64});
+  camera_.SetupView({DataUtils::kScreenWidth, DataUtils::kScreenHeight},
+                    {DataUtils::kTilemapWidth / 2, DataUtils::kTilemapHeight / 2});
 }
 
-ActionCode LoopMenu()
-{
+ActionCode LoopMenu() {
   mainMenu_.Start(window_);
   ActionCode actionValue = ActionCode::kMenu;
 
@@ -51,24 +52,16 @@ ActionCode LoopMenu()
     mainMenu_.HandleButtonsStates(window_);
 
     // Graphic frame
-    window_.clear(sf::Color{192,255,255});
+    window_.clear(sf::Color{192, 255, 255});
     mainMenu_.Draw(window_);
     window_.display();
   }
 
   return ActionCode::kQuit;
 }
-//TODO : Déplacer tout ce qui est relatif à la view dans une class
+
 ActionCode LoopGame() {
   Setup();
-
-
-  /*TODO :
-   * rajouter un maxZoom et un minZoom
-   * se baser sur le zoom actuel pour définir la vitesse du drag
-   *
-   * */
-
 
   window_.setView(camera_.GetView());
 
@@ -83,7 +76,6 @@ ActionCode LoopGame() {
         window_.close();
       }
       camera_.HandleMouse(*event, window_);
-
 
     }
 

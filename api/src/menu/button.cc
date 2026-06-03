@@ -9,161 +9,121 @@
 
 namespace menu {
 
-void Button::HandleInput(const std::optional<sf::Event>& event)
-{
-  if (isMouseHover_)
-  {
-    if (const auto* mouse = event->getIf<sf::Event::MouseButtonPressed>())
-    {
-      isPressed_ = true;
+void Button::HandleInput(const std::optional<sf::Event> &event) {
+  if (is_mouse_hover_) {
+    if (const auto *mouse = event->getIf<sf::Event::MouseButtonPressed>()) {
+      is_pressed_ = true;
     }
-    if (const auto* mouse = event->getIf<sf::Event::MouseButtonReleased>())
-    {
-      isPressed_ = false;
-      hasBeenPressed_ = true;
+    if (const auto *mouse = event->getIf<sf::Event::MouseButtonReleased>()) {
+      is_pressed_ = false;
+      has_been_pressed_ = true;
     }
-  }
-  else
-  {
-    isPressed_ = false;
+  } else {
+    is_pressed_ = false;
   }
 }
 
-bool Button::CheckHover(sf::Vector2f mousePosition)
-{
-  if (shape_.getGlobalBounds().contains(mousePosition))
-  {
-    isMouseHover_ = true;
+void Button::CheckHover(sf::Vector2f mousePosition) {
+  if (shape_.getGlobalBounds().contains(mousePosition)) {
+    is_mouse_hover_ = true;
+  } else {
+    is_mouse_hover_ = false;
   }
-  else
-  {
-    isMouseHover_ = false;
-  }
-
-  return  isMouseHover_;
 }
 
-void Button::HandleState()
-{
-  if (isMouseHover_)
-  {
-    if (isPressed_)
-    {
-      shape_.setFillColor(pressColor_);
+void Button::HandleState() {
+  if (is_mouse_hover_) {
+    if (is_pressed_) {
+      shape_.setFillColor(press_color_);
+    } else {
+      shape_.setFillColor(hover_color_);
     }
-    else
-    {
-      shape_.setFillColor(hoverColor_);
+    if (text_.has_value()) {
+      text_->setFillColor(text_hover_color_);
     }
-    if (text_.has_value())
-    {
-      text_->setFillColor(textHoverColor_);
-    }
-  }
-  else
-  {
-    shape_.setFillColor(fillColor_);
-    if (text_.has_value())
-    {
-      text_->setFillColor(textColor_);
+  } else {
+    shape_.setFillColor(fill_color_);
+    if (text_.has_value()) {
+      text_->setFillColor(text_color_);
     }
   }
 }
 
-bool Button::HasBeenPressed()
-{
-  return hasBeenPressed_;
+bool Button::has_been_pressed() const {
+  return has_been_pressed_;
 }
 
-void Button::ResetPressState()
-{
-  hasBeenPressed_ = false;
+void Button::ResetPressState() {
+  has_been_pressed_ = false;
 }
 
-void Button::SetText(std::string text)
-{
-  if (text_.has_value())
-  {
-    text_->setString(text);
+void Button::set_text(std::string_view new_text) {
+  if (text_.has_value()) {
+    text_->setString(new_text.data());
   }
 }
 
-void Button::SetSize(sf::Vector2f size)
-{
-  shape_.setSize(size);
-  shape_.setOrigin(sf::Vector2f(size.x/2,size.y/2));
+void Button::set_size(sf::Vector2f new_size) {
+  shape_.setSize(new_size);
+  shape_.setOrigin(sf::Vector2f(new_size.x / 2, new_size.y / 2));
 }
 
-void Button::SetFillColor(sf::Color color)
-{
-  fillColor_ = color;
+void Button::set_fill_color(sf::Color new_color) {
+  fill_color_ = new_color;
 }
 
-void Button::SetHoverColor(sf::Color color)
-{
-  hoverColor_ = color;
+void Button::set_hover_color(sf::Color new_color) {
+  hover_color_ = new_color;
 }
 
-void Button::SetPressColor(sf::Color color)
-{
-  pressColor_ = color;
+void Button::set_pressed_color(sf::Color new_color) {
+  press_color_ = new_color;
 }
 
-void Button::SetPosition(sf::Vector2f position)
-{
-  shape_.setPosition(position);
-  if (text_.has_value())
-  {
+void Button::set_position(sf::Vector2f new_position) {
+  shape_.setPosition(new_position);
+  if (text_.has_value()) {
     float textXOrigin = shape_.getPosition().x - text_->getGlobalBounds().size.x / 2;
     float textYOrigin = shape_.getPosition().y - text_->getGlobalBounds().size.y;
-    text_->setPosition({ textXOrigin,textYOrigin });
+    text_->setPosition({textXOrigin, textYOrigin});
   }
 }
 
-void Button::SetOutline(int size, sf::Color color)
-{
-  shape_.setOutlineThickness(size);
-  shape_.setOutlineColor(color);
+void Button::set_outline(int new_size, sf::Color new_color) {
+  shape_.setOutlineThickness(new_size);
+  shape_.setOutlineColor(new_color);
 }
 
-void Button::SetFont(sf::Font& font, int size)
-{
-  text_ = sf::Text(font);
-  text_->setCharacterSize(size);
+void Button::set_font(sf::Font &new_font, int new_size) {
+  text_ = sf::Text(new_font);
+  text_->setCharacterSize(new_size);
 }
 
-void Button::SetFontColor(sf::Color color)
-{
-  if (text_.has_value())
-  {
-    textColor_ = color;
-    text_->setFillColor(textColor_);
+void Button::set_font_color(sf::Color new_color) {
+  if (text_.has_value()) {
+    text_color_ = new_color;
+    text_->setFillColor(text_color_);
   }
 }
 
-void Button::SetFontHoverColor(sf::Color color) {
-  if (text_.has_value())
-  {
-    textHoverColor_ = color;
-    text_->setFillColor(textHoverColor_);
+void Button::set_font_hover_color(sf::Color new_color) {
+  if (text_.has_value()) {
+    text_hover_color_ = new_color;
+    text_->setFillColor(text_hover_color_);
   }
 }
 
-
-void Button::SetActionCode(ActionCode action)
-{
-  actionCode_ = action;
+void Button::set_action_code(ActionCode new_action) {
+  action_code_ = new_action;
 }
 
-ActionCode Button::GetActionCode()
-{
-  return actionCode_;
+ActionCode Button::get_action_code() const {
+  return action_code_;
 }
 void Button::Draw(sf::RenderWindow &window) const {
   sf::RenderStates states;
   window.draw(shape_, states);
-  if (text_.has_value())
-  {
+  if (text_.has_value()) {
     window.draw(*text_, states);
   }
 }

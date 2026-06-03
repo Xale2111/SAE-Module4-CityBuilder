@@ -8,28 +8,26 @@
 #include <string>
 #include "SFML/Graphics.hpp"
 #include "button.h"
-#include "DataUtils.h"
+#include "data_utils.h"
 
 namespace menu {
 
 class menu {
- private :
-  Button startButton;
-  Button quitButton;
-  sf::Font menuFont;
-
-  void SetupStartButton();
-  void SetupQuitButton();
-
  public:
-  std::string worldName;
-  int screenWidth;
-  int screenHeight;
+  std::string world_name_;
 
   void Start(sf::RenderWindow &window);
   void Draw(sf::RenderWindow &window);
   void HandleButtonsStates(sf::RenderWindow &window);
-  ActionCode HandleInput(const std::optional<sf::Event>& event);
+  [[nodiscard]] ActionCode HandleInput(const std::optional<sf::Event> &event);
+
+ private :
+  Button start_button_;
+  Button quit_button_;
+  sf::Font menu_font_;
+
+  void SetupStartButton();
+  void SetupQuitButton();
 };
 
 }
