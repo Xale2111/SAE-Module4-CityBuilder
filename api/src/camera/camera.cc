@@ -5,16 +5,17 @@
 #include <print>
 #include "camera/camera.h"
 #include "data_utils.h"
+namespace camera {
 
 //********PRIVATE********//
 void Camera::LimitCameraArea() {
   //Check current camera position
   //Check camera size
   //Based on screen size, camera size and position, replace camera if necessary
-  //if center is smaller then mapWidth*viewsizeX/2 || bigger then mapWidth - mapWidth*viewsizeX/2
+  //if center is smaller than mapWidth*viewsizeX/2 || bigger than mapWidth - mapWidth*viewsizeX/2
   //same logic with Y
 
-  //if smaller or bigger, set to neareat acceptable value (mapWidth*viewsizeX/2 || bigger then mapWidth - mapWidth*viewsizeX/2)
+  //if smaller or bigger, set to nearest acceptable value (mapWidth*viewsizeX/2 || bigger than mapWidth - mapWidth*viewsizeX/2)
 
   const sf::Vector2f center = view_.getCenter();
   const sf::Vector2f size = view_.getSize();
@@ -90,6 +91,7 @@ void Camera::HandleMouse(const std::optional<sf::Event> &event, sf::RenderWindow
       window.setView(view_);
     }
   }
+}
 }
 
 

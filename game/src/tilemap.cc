@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include "tilemap.h"
+#include "data_utils.h"
 #include <print>
 
 std::random_device r;
@@ -51,9 +52,9 @@ void Tilemap::Setup(sf::Vector2f gridSize, sf::Vector2f gridOffset, int seed) {
   }
 
   if (resources_tile_sheet_.InitTileSheet("_assets/resources.png", 512)) {
-    resources_tile_sheet_.AddTile(ResourcesTiles::kWood, 2, 0);
-    resources_tile_sheet_.AddTile(ResourcesTiles::kStone, 0, 1);
-    resources_tile_sheet_.AddTile(ResourcesTiles::kFood, 1, 2);
+    resources_tile_sheet_.AddTile(ResourcesType::kWood, 2, 0);
+    resources_tile_sheet_.AddTile(ResourcesType::kStone, 0, 1);
+    resources_tile_sheet_.AddTile(ResourcesType::kFood, 1, 2);
 
     resources_renderer_.SetTexture(resources_tile_sheet_.GetTexture());
     resources_renderer_.Clear();
@@ -132,7 +133,7 @@ void Tilemap::AddResourcesTileBasedOnBiome(sf::Vector2f pos, sf::Vector2f gridOf
   for (int i = 1; i < 4; i++) {
     cumulative += biome.percentages[i];
     if (randomNumber < cumulative) {
-      resources_renderer_.AddTile(pos, gridOffset, resources_tile_sheet_.GetBounds(static_cast<ResourcesTiles>(i - 1)));
+      resources_renderer_.AddTile(pos, gridOffset, resources_tile_sheet_.GetBounds(static_cast<ResourcesType>(i - 1)));
       return;
     }
   }

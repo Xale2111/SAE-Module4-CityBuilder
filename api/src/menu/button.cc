@@ -13,6 +13,7 @@ void Button::HandleInput(const std::optional<sf::Event> &event) {
   if (is_mouse_hover_) {
     if (const auto *mouse = event->getIf<sf::Event::MouseButtonPressed>()) {
       is_pressed_ = true;
+      OnPress.Invoke();
     }
     if (const auto *mouse = event->getIf<sf::Event::MouseButtonReleased>()) {
       is_pressed_ = false;
@@ -127,6 +128,7 @@ void Button::Draw(sf::RenderWindow &window) const {
     window.draw(*text_, states);
   }
 }
+
 
 }
 

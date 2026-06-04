@@ -11,10 +11,28 @@
 #include <SFML/Window/Event.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include "data_utils.h"
+#include <functional>
+#include <vector>
 
 namespace menu {
+
+class Event {
+ public:
+  void operator+=(std::function<void()> callback) {
+    callbacks_.push_back(callback);
+  }
+  void Invoke() {
+    for (auto& callback : callbacks_)
+      callback();
+  }
+ private:
+  std::vector<std::function<void()>> callbacks_;
+};
+
 class Button {
  public:
+  Event OnPress;
+
   void Draw(sf::RenderWindow &window) const;
 
   void HandleInput(const std::optional<sf::Event> &event);
@@ -54,7 +72,7 @@ class Button {
   bool has_been_pressed_ = false;
   bool is_mouse_hover_ = false;
 
-  ActionCode action_code_;
+  ActionCode action_code_ = ActionCode::kMenu;
 
 };
 

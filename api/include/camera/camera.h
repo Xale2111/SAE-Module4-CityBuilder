@@ -7,6 +7,7 @@
 
 #include "SFML/Graphics.hpp"
 #include "data_utils.h"
+namespace camera {
 
 class Camera {
  public :
@@ -20,7 +21,6 @@ class Camera {
   float zoom_factor_ = .9f;
   float dezoom_factor_ = 1.1f;
 
-
   const float max_zoom_ = .4f;
   const float max_dezoom_ = 2.f;
 
@@ -29,7 +29,7 @@ class Camera {
 
   void LimitCameraArea();
 
-
 };
+}
 
 #endif //SAE_ALEXK_CITYBUILDER_API_SRC_CAMERA_CAMERA_H_

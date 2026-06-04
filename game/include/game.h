@@ -8,7 +8,9 @@
 #include "SFML/Graphics.hpp"
 #include "data_utils.h"
 
+
 namespace game {
+
 void Setup();
 [[nodiscard]] ActionCode LoopMenu();
 [[nodiscard]] ActionCode LoopGame();

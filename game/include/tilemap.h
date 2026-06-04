@@ -12,18 +12,13 @@
 #include "graphics/tilesheet.h"
 #include "biome.h"
 #include <random>
+#include "data_utils.h"
 
 enum class BackgroundTiles {
   kGround,
   kGrass,
   kFlowerOne,
   kFlowerTwo
-};
-
-enum class ResourcesTiles {
-  kWood,
-  kStone,
-  kFood,
 };
 
 enum class BuildingsTiles {
@@ -43,7 +38,7 @@ class Tilemap {
   graphics::TilemapRenderer resources_renderer_;
   graphics::TilemapRenderer buildings_renderer_;
   graphics::TileSheet<BackgroundTiles> ground_tile_sheet_;
-  graphics::TileSheet<ResourcesTiles> resources_tile_sheet_;
+  graphics::TileSheet<ResourcesType> resources_tile_sheet_;
   graphics::TileSheet<BuildingsTiles> buildings_tile_sheet_;
 
   [[nodiscard]] int GetSampleIndex(int sampleSize, int percent) const;

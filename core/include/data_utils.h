@@ -9,7 +9,13 @@ enum class ActionCode {
   kMenu,
   kPause,
   kResume,
-  kQuit,
+  kQuit
+};
+
+enum class ResourcesType {
+  kWood,
+  kStone,
+  kFood,
 };
 
  class DataUtils {
@@ -17,8 +23,8 @@ enum class ActionCode {
   static constexpr int kScreenWidth = 1920;
   static constexpr int kScreenHeight = 1080;
 
-  static constexpr int kTilemapWidth = 5000;
-  static constexpr int kTilemapHeight = 5000;
+  static constexpr int kTilemapWidth = 15000;
+  static constexpr int kTilemapHeight = 15000;
 
 };
 #endif //SAE_ALEXK_CITYBUILDER_CORE_INCLUDE_DATA_UTILS_H_

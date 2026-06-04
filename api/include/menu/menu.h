@@ -12,11 +12,11 @@
 
 namespace menu {
 
-class menu {
+class Menu {
  public:
   std::string world_name_;
 
-  void Start(sf::RenderWindow &window);
+  void Init(sf::RenderWindow &window);
   void Draw(sf::RenderWindow &window);
   void HandleButtonsStates(sf::RenderWindow &window);
   [[nodiscard]] ActionCode HandleInput(const std::optional<sf::Event> &event);

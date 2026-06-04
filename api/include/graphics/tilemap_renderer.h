@@ -19,8 +19,8 @@ class TilemapRenderer {
  private:
   const sf::Color color = sf::Color::White;
 
-  sf::Vector2f gridSize_;
-  sf::Vector2f gridOffset_;
+  sf::Vector2f gridSize_{128,128};
+  sf::Vector2f gridOffset_{24,24};
   sf::Texture *texture_ = nullptr;
   sf::VertexArray vertices_ = sf::VertexArray(sf::PrimitiveType::Triangles);
 

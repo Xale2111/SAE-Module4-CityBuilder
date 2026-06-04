@@ -13,7 +13,7 @@ constexpr int kScreenHeight = 600;
 constexpr int buttonWidth = 300;
 constexpr int buttonHeight = 180;
 
-void menu::Start(sf::RenderWindow &window) {
+void Menu::Init(sf::RenderWindow &window) {
   if (!menu_font_.openFromFile("_assets/fonts/ShareTech-Regular.ttf")) {
     std::cerr << "Failed to load main menu font";
   }
@@ -23,12 +23,12 @@ void menu::Start(sf::RenderWindow &window) {
   SetupQuitButton();
 }
 
-void menu::Draw(sf::RenderWindow &window) {
+void Menu::Draw(sf::RenderWindow &window) {
   start_button_.Draw(window);
   quit_button_.Draw(window);
 }
 
-void menu::HandleButtonsStates(sf::RenderWindow &window) {
+void Menu::HandleButtonsStates(sf::RenderWindow &window) {
   start_button_.CheckHover(sf::Vector2f(sf::Mouse::getPosition(window)));
   start_button_.HandleState();
 
@@ -36,7 +36,7 @@ void menu::HandleButtonsStates(sf::RenderWindow &window) {
   quit_button_.HandleState();
 }
 
-ActionCode menu::HandleInput(const std::optional<sf::Event> &event) {
+ActionCode Menu::HandleInput(const std::optional<sf::Event> &event) {
   start_button_.HandleInput(event);
   quit_button_.HandleInput(event);
 
@@ -52,7 +52,7 @@ ActionCode menu::HandleInput(const std::optional<sf::Event> &event) {
 
   return ActionCode::kMenu;
 }
-void menu::SetupStartButton() {
+void Menu::SetupStartButton() {
   start_button_.set_font(menu_font_, 50);
   start_button_.set_font_color(sf::Color::Black);
   start_button_.set_font_hover_color(sf::Color::White);
@@ -66,7 +66,7 @@ void menu::SetupStartButton() {
   start_button_.ResetPressState();
 }
 
-void menu::SetupQuitButton() {
+void Menu::SetupQuitButton() {
 
   quit_button_.set_font(menu_font_, 50);
   quit_button_.set_font_color(sf::Color::Black);
