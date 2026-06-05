@@ -18,6 +18,14 @@ enum class ResourcesType {
   kFood,
 };
 
+enum class DisplayableBuilding{
+  kFoodHouse,
+  kLumberjackHouse,
+  kMineHouse,
+  kCanteen,
+  kNone
+};
+
  class DataUtils {
  public :
   static constexpr int kScreenWidth = 1920;

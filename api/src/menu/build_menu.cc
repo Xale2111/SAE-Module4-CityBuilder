@@ -2,7 +2,7 @@
 // Created by alexk on 04.06.2026.
 //
 
-#include <iostream>
+#include <print>
 #include "menu/build_menu.h"
 #include "data_utils.h"
 
@@ -10,7 +10,11 @@ namespace menu {
 
 void BuildMenu::Init() {
   if (!build_menu_font_.openFromFile("_assets/fonts/ShareTech-Regular.ttf")) {
-    std::cerr << "Failed to load build menu font";
+    std::println(stderr, "Failed to load build menu font");
+  }
+
+  if (!buildings_texture_.loadFromFile("_assets/buildings.png")) {
+    std::println(stderr, "Failed to load buildings texture");
   }
 
   bg_shape_.setFillColor({0, 0, 0, 180});
@@ -21,7 +25,9 @@ void BuildMenu::Init() {
   toggle_state_ = true;
 
   SetupToggleButton();
+  SetupCardsFont();
   SetupBuildingCards();
+  SetupCardsPressEvent();
 }
 
 void BuildMenu::Draw(sf::RenderWindow &window) {
@@ -33,6 +39,7 @@ void BuildMenu::Draw(sf::RenderWindow &window) {
     bcui_lumberjack_.Draw(window);
     bcui_mine_.Draw(window);
     bcui_canteen_.Draw(window);
+    DisplaySelectedBuilding(window);
   }
 }
 
@@ -40,35 +47,60 @@ void BuildMenu::HandleMenu(sf::RenderWindow &window, const std::optional<sf::Eve
   HandleButtonsStates(window);
   HandleInput(event);
   HandlePanelPosition();
+  HandleCardsHover(window);
+  HandleCardsInput(event);
+}
+void BuildMenu::HandleInput(const std::optional<sf::Event> &event)
+{
+  toggle_menu_button_.HandleInput(event);
+
+  if(toggle_state_ && !hovering_menu_){
+    if (const auto *mouse = event->getIf<sf::Event::MouseButtonPressed>()) {
+      place_building_press_ = true;
+    }
+    if (const auto *mouse = event->getIf<sf::Event::MouseButtonReleased>()) {
+      place_building_press_ = false;
+    }
+  }
+
+}
+
+
+void BuildMenu::CheckOverBuildMenu(sf::RenderWindow &window) {
+  if (toggle_state_) {
+    if (bg_shape_.getGlobalBounds().contains(sf::Vector2f(sf::Mouse::getPosition(window)))) {
+      hovering_menu_ = true;
+      return;
+    }
+  }
+  hovering_menu_ = false;
 }
 
 void BuildMenu::HandleButtonsStates(sf::RenderWindow &window) {
   toggle_menu_button_.CheckHover(sf::Vector2f(sf::Mouse::getPosition(window)));
   toggle_menu_button_.HandleState();
 }
-void BuildMenu::HandleInput(const std::optional<sf::Event> &event) {
-  toggle_menu_button_.HandleInput(event);
-}
+
 void BuildMenu::HandlePanelPosition() {
   if (toggle_state_) {
-    position_ = {DataUtils::kScreenWidth * .1f, DataUtils::kScreenHeight / 4 * 3};
+    position_ = {DataUtils::kScreenWidth * .1f, DataUtils::kScreenHeight / 5 * 4};
   } else {
     position_ = {DataUtils::kScreenWidth * .1f, DataUtils::kScreenHeight};
   }
-  toggle_menu_button_.set_position({DataUtils::kScreenWidth / 2, position_.y - toggle_button_size_.y / 2});
-
+  toggle_menu_button_.set_position({DataUtils::kScreenWidth / 2, position_.y - kToggleButtonSize.y / 2});
 }
+
 void BuildMenu::SetupToggleButton() {
   toggle_menu_button_.set_font(build_menu_font_, 30);
   toggle_menu_button_.set_text("Build Menu");
-  toggle_menu_button_.set_size(toggle_button_size_);
-  toggle_menu_button_.set_position({DataUtils::kScreenWidth / 2, position_.y - toggle_button_size_.y / 2});
+  toggle_menu_button_.set_size(kToggleButtonSize);
+  toggle_menu_button_.set_position({DataUtils::kScreenWidth / 2, position_.y - kToggleButtonSize.y / 2});
   toggle_menu_button_.set_fill_color({89, 82, 61});
   toggle_menu_button_.set_hover_color({61, 56, 41});
   toggle_menu_button_.set_pressed_color({36, 33, 24});
   toggle_menu_button_.ResetPressState();
 
-  toggle_menu_button_.OnPress += [this]() {
+  toggle_menu_button_.event_on_press_ += [this]() {
     toggle_state_ = !toggle_state_;
   };
 }
@@ -81,7 +113,7 @@ void BuildMenu::SetupBuildingCards() {
   };
 
   // 5 espaces égaux pour 4 cartes : | gap | carte | gap | carte | gap | carte | gap | carte | gap |
-  const float gap = (bg_shape_.getSize().x - 6 * card_size.x) / 5.f;
+  const float gap = (bg_shape_.getSize().x - 6.5f * card_size.x) / 5.f;
 
   // Y centré verticalement dans le bg (origin est au centre de la carte)
   const float card_y = position_.y + bg_shape_.getSize().y * .05f;
@@ -91,17 +123,109 @@ void BuildMenu::SetupBuildingCards() {
   const float card_step = card_size.x + gap;
 
   // Resources
-  std::array<building::BuildingResource, 2>
+  std::vector<building::BuildingResource>
       lumberjack_resources = {{{500, ResourcesType::kStone}, {250, ResourcesType::kFood}}};
-  std::array<building::BuildingResource, 2>
+  std::vector<building::BuildingResource>
       picker_resources = {{{575, ResourcesType::kWood}, {300, ResourcesType::kStone}}};
-  std::array<building::BuildingResource, 1> mine_resources = {{{750, ResourcesType::kWood}}};
+  std::vector<building::BuildingResource> mine_resources = {{{750, ResourcesType::kWood}}};
+  std::vector<building::BuildingResource>
+      canteen_resources = {{{1500, ResourcesType::kWood}, {1500, ResourcesType::kStone}, {1500, ResourcesType::kFood}}};
 
-  bcui_food_picker_.Init(card_size, {first_card_x + card_step * 0, card_y}, 0, "Farm", picker_resources);
-  bcui_lumberjack_.Init(card_size, {first_card_x + card_step * 1, card_y}, 1, "Lumberjack cabin", lumberjack_resources);
-  bcui_mine_.Init(card_size, {first_card_x + card_step * 2, card_y}, 2, "Mine", mine_resources);
-  bcui_canteen_.Init(card_size, {first_card_x + card_step * 3, card_y}, 3, "Canteen", {});
+  bcui_food_picker_.Init(card_size,
+                         {first_card_x + card_step * 0, card_y},
+                         buildings_texture_,
+                         0,
+                         "Farm",
+                         picker_resources);
+  bcui_lumberjack_.Init(card_size,
+                        {first_card_x + card_step * 1, card_y},
+                        buildings_texture_,
+                        1,
+                        "Lumberjack cabin",
+                        lumberjack_resources);
+  bcui_mine_.Init(card_size, {first_card_x + card_step * 2, card_y}, buildings_texture_, 2, "Mine", mine_resources);
+  bcui_canteen_.Init(card_size,
+                     {first_card_x + card_step * 3, card_y},
+                     buildings_texture_,
+                     3,
+                     "Canteen",
+                     canteen_resources);
+  bcui_canteen_.set_resource_text("1500 : Wood/Stone/Food");
+}
+
+void BuildMenu::SetupCardsFont() {
+  bcui_lumberjack_.set_font(build_menu_font_, kCardsNameFontSize, kCardsResourceFontSize);
+  bcui_food_picker_.set_font(build_menu_font_, kCardsNameFontSize, kCardsResourceFontSize);
+  bcui_mine_.set_font(build_menu_font_, kCardsNameFontSize, kCardsResourceFontSize);
+  bcui_canteen_.set_font(build_menu_font_, kCardsNameFontSize, kCardsResourceFontSize);
+}
+
+void BuildMenu::SetupCardsPressEvent() {
+  bcui_lumberjack_.event_on_press_ += [this]() {
+    std::println("Lumberjack pressed");
+    ChangeSelectedBuildingSprite(bcui_lumberjack_.get_texture_index());
+  };
+  bcui_food_picker_.event_on_press_ += [this]() {
+    std::println("Food picker pressed");
+    ChangeSelectedBuildingSprite(bcui_food_picker_.get_texture_index());
+
+  };
+  bcui_mine_.event_on_press_ += [this]() {
+    std::printf("Mine pressed");
+    ChangeSelectedBuildingSprite(bcui_mine_.get_texture_index());
+
+  };
+  bcui_canteen_.event_on_press_ += [this]() {
+    std::printf("Canteen pressed");
+    ChangeSelectedBuildingSprite(bcui_canteen_.get_texture_index());
+  };
+}
+
+void BuildMenu::HandleCardsHover(sf::RenderWindow &window) {
+  sf::Vector2f mousePosition = sf::Vector2f(sf::Mouse::getPosition(window));
+
+  bcui_food_picker_.CheckHover(mousePosition);
+  bcui_lumberjack_.CheckHover(mousePosition);
+  bcui_mine_.CheckHover(mousePosition);
+  bcui_canteen_.CheckHover(mousePosition);
+}
+
+void BuildMenu::HandleCardsInput(const std::optional<sf::Event> &event) {
+  bcui_food_picker_.HandleInput(event);
+  bcui_lumberjack_.HandleInput(event);
+  bcui_mine_.HandleInput(event);
+  bcui_canteen_.HandleInput(event);
+}
+void BuildMenu::ChangeSelectedBuildingSprite(int spriteIndex) {
+  DisplayableBuilding wanted_building_ = static_cast<DisplayableBuilding>(spriteIndex);
+  if (current_selected_building_index_ != wanted_building_) {
+    ResetSelectedBuilding();
+    current_selected_building_index_ = wanted_building_;
+    current_display_building_sprite_ = sf::Sprite(buildings_texture_);
+    current_display_building_sprite_->setTextureRect(sf::IntRect{{spriteIndex * 512, 0}, {512, 512}});
+    current_display_building_sprite_->setScale({512 / 512*kCurrentBuildingSpriteSize,
+                                                512 / 512*kCurrentBuildingSpriteSize });
+    current_display_building_sprite_->setColor({255, 255, 255, 180});
+    current_display_building_sprite_->setOrigin({512 / 2, 512 / 2});
+  }
+  else{
+    ResetSelectedBuilding();
+  }
+}
+
+void BuildMenu::DisplaySelectedBuilding(sf::RenderWindow &window) {
+  //TODO : Snap building on the grid
+  //TODO : Change building color based on what's underneath (if ok -> green, if not -> red)
+  if (current_display_building_sprite_.has_value()) {
+
+    current_display_building_sprite_->setPosition(sf::Vector2f(sf::Mouse::getPosition(window)));
+    window.draw(*current_display_building_sprite_);
+  }
+}
+
+void BuildMenu::ResetSelectedBuilding() {
+  current_selected_building_index_ = DisplayableBuilding::kNone;
+  current_display_building_sprite_.reset();
 }
 
 }
-

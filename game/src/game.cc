@@ -77,9 +77,19 @@ ActionCode LoopGame() {
       if (event->is<sf::Event::Closed>()) {
         window_.close();
       }
-      camera_.HandleMouse(*event, window_);
 
       build_menu_.HandleMenu(window_,*event);
+      build_menu_.CheckOverBuildMenu(window_);
+
+      //TODO: Check when hologram is clicked, check if there's nothing under, place the building
+      //If build menu place building
+      tilemap_.AddBuilding(build_menu_.get_current_building_(), sf::Vector2f(sf::Mouse::getPosition(window_)));
+
+      if(!build_menu_.get_hover_build_menu())
+      {
+        camera_.HandleMouse(*event, window_);
+      }
+
     }
 
 

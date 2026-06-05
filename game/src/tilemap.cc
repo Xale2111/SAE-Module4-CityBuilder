@@ -45,9 +45,7 @@ void Tilemap::Setup(sf::Vector2f gridSize, sf::Vector2f gridOffset, int seed) {
             ground_renderer_.AddTile({x, y}, gridOffset, ground_tile_sheet_.GetBounds(BackgroundTiles::kFlowerTwo));
           }
         }
-
       }
-
     }
   }
 
@@ -112,6 +110,14 @@ void Tilemap::Setup(sf::Vector2f gridSize, sf::Vector2f gridOffset, int seed) {
       }
     }
   }
+
+  if (buildings_tile_sheet_.InitTileSheet("_assets/buildings.png", 512)) {
+    buildings_tile_sheet_.AddTile(DisplayableBuilding::kFoodHouse, 0, 0);
+    buildings_tile_sheet_.AddTile(DisplayableBuilding::kLumberjackHouse, 1, 0);
+    buildings_tile_sheet_.AddTile(DisplayableBuilding::kMineHouse, 2, 0);
+    buildings_tile_sheet_.AddTile(DisplayableBuilding::kCanteen, 3, 0);
+
+  }
 }
 
 void Tilemap::Draw(sf::RenderWindow &window) {
@@ -137,4 +143,8 @@ void Tilemap::AddResourcesTileBasedOnBiome(sf::Vector2f pos, sf::Vector2f gridOf
       return;
     }
   }
+}
+
+void Tilemap::AddBuilding(DisplayableBuilding building_to_place, sf::Vector2f building_position) {
+  buildings_renderer_.AddTile(building_position, sf::Vector2f(512, 512), buildings_tile_sheet_.GetBounds(building_to_place));
 }

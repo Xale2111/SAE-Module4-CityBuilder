@@ -11,27 +11,13 @@
 #include <SFML/Window/Event.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include "data_utils.h"
-#include <functional>
-#include <vector>
+#include "event.h"
 
 namespace menu {
 
-class Event {
- public:
-  void operator+=(std::function<void()> callback) {
-    callbacks_.push_back(callback);
-  }
-  void Invoke() {
-    for (auto& callback : callbacks_)
-      callback();
-  }
- private:
-  std::vector<std::function<void()>> callbacks_;
-};
-
 class Button {
  public:
-  Event OnPress;
+  CustomEvent event_on_press_;
 
   void Draw(sf::RenderWindow &window) const;
 

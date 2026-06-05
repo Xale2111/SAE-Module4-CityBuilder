@@ -21,17 +21,11 @@ enum class BackgroundTiles {
   kFlowerTwo
 };
 
-enum class BuildingsTiles {
-  kLumberjack,
-  kMinor,
-  kGatherer,
-  kFoodHall
-};
-
 class Tilemap {
  public :
   void Setup(sf::Vector2f gridSize, sf::Vector2f gridOffset, int seed = 1067);
   void Draw(sf::RenderWindow &window);
+  void AddBuilding(DisplayableBuilding building_to_place, sf::Vector2f building_position);
 
  private :
   graphics::TilemapRenderer ground_renderer_;
@@ -39,7 +33,7 @@ class Tilemap {
   graphics::TilemapRenderer buildings_renderer_;
   graphics::TileSheet<BackgroundTiles> ground_tile_sheet_;
   graphics::TileSheet<ResourcesType> resources_tile_sheet_;
-  graphics::TileSheet<BuildingsTiles> buildings_tile_sheet_;
+  graphics::TileSheet<DisplayableBuilding> buildings_tile_sheet_;
 
   [[nodiscard]] int GetSampleIndex(int sampleSize, int percent) const;
 

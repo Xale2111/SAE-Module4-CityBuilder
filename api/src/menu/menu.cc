@@ -2,7 +2,7 @@
 // Created by alexk on 27.05.2026.
 //
 
-#include <iostream>
+#include <print>
 #include "menu/menu.h"
 #include "menu/button.h"
 
@@ -15,7 +15,8 @@ constexpr int buttonHeight = 180;
 
 void Menu::Init(sf::RenderWindow &window) {
   if (!menu_font_.openFromFile("_assets/fonts/ShareTech-Regular.ttf")) {
-    std::cerr << "Failed to load main menu font";
+    std::println(stderr, "Failed to load main menu font");
+
   }
 
   window.create(sf::VideoMode({kScreenWidth, kScreenHeight}), "City Builder de fou malade avec des explosions !!");
