@@ -67,14 +67,14 @@ void Camera::HandleMouse(const std::optional<sf::Event> &event, sf::RenderWindow
 
   }
   if (const auto *press = event->getIf<sf::Event::MouseButtonPressed>()) {
-    if (press->button == sf::Mouse::Button::Left) {
+    if (press->button == sf::Mouse::Button::Right) {
       is_dragging_ = true;
       last_mouse_pos_ = sf::Mouse::getPosition(window);
     }
   }
 
   if (const auto *release = event->getIf<sf::Event::MouseButtonReleased>()) {
-    if (release->button == sf::Mouse::Button::Left)
+    if (release->button == sf::Mouse::Button::Right)
       is_dragging_ = false;
     is_dragging_ = false;
   }

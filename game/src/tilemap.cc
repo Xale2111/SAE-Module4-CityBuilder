@@ -11,43 +11,12 @@ std::random_device r;
 std::default_random_engine rng_(r());
 
 void Tilemap::Setup(sf::Vector2f gridSize, sf::Vector2f gridOffset, int seed) {
+  map_size_    = gridSize;
+  grid_offset_ = gridOffset;
+  cols_        = static_cast<int>(gridSize.x / gridOffset.x);
+  rows_        = static_cast<int>(gridSize.y / gridOffset.y);
 
-  FastNoiseLite noise;
-  noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
-  noise.SetSeed(1337);
-  noise.SetFrequency(0.01f);
-
-  if (ground_tile_sheet_.InitTileSheet("_assets/ground.png", 512)) {
-    ground_tile_sheet_.AddTile(BackgroundTiles::kGround, 0, 0);
-    ground_tile_sheet_.AddTile(BackgroundTiles::kGrass, 3, 0);
-    ground_tile_sheet_.AddTile(BackgroundTiles::kFlowerOne, 1, 0);
-    ground_tile_sheet_.AddTile(BackgroundTiles::kFlowerTwo, 2, 0);
-
-    // init textures
-    ground_renderer_.SetTexture(ground_tile_sheet_.GetTexture());
-    ground_renderer_.Clear();
-
-    for (float x = 0.f; x < gridSize.x; x += gridOffset.x) {
-      for (float y = 0.f; y < gridSize.y; y += gridOffset.y) {
-        float noiseValue = std::abs(noise.GetNoise(x, y)); //noise value is between -1 and 1
-
-        if (noiseValue <= .2f) {
-          ground_renderer_.AddTile({x, y}, gridOffset, ground_tile_sheet_.GetBounds(BackgroundTiles::kGround));
-        } else if (noiseValue <= .5f) {
-          ground_renderer_.AddTile({x, y}, gridOffset, ground_tile_sheet_.GetBounds(BackgroundTiles::kGrass));
-        } else {
-          std::uniform_int_distribution<int> dist(0, 2);
-          int randomNumber = dist(rng_);
-
-          if (randomNumber % 2 == 0) {
-            ground_renderer_.AddTile({x, y}, gridOffset, ground_tile_sheet_.GetBounds(BackgroundTiles::kFlowerOne));
-          } else {
-            ground_renderer_.AddTile({x, y}, gridOffset, ground_tile_sheet_.GetBounds(BackgroundTiles::kFlowerTwo));
-          }
-        }
-      }
-    }
-  }
+  InitTiles();
 
   if (resources_tile_sheet_.InitTileSheet("_assets/resources.png", 512)) {
     resources_tile_sheet_.AddTile(ResourcesType::kWood, 2, 0);
@@ -57,7 +26,6 @@ void Tilemap::Setup(sf::Vector2f gridSize, sf::Vector2f gridOffset, int seed) {
     resources_renderer_.SetTexture(resources_tile_sheet_.GetTexture());
     resources_renderer_.Clear();
 
-    // Bruit 1 : définit les zones de biomes (inchangé)
     FastNoiseLite noiseBiome;
     noiseBiome.SetNoiseType(FastNoiseLite::NoiseType_Cellular);
     noiseBiome.SetSeed(seed);
@@ -65,47 +33,75 @@ void Tilemap::Setup(sf::Vector2f gridSize, sf::Vector2f gridOffset, int seed) {
     noiseBiome.SetCellularReturnType(FastNoiseLite::CellularReturnType_CellValue);
     noiseBiome.SetCellularDistanceFunction(FastNoiseLite::CellularDistanceFunction_Euclidean);
     noiseBiome.SetCellularJitter(0.67f);
-    noiseBiome.SetFractalType(FastNoiseLite::FractalType_None); // pas de fractale ici
+    noiseBiome.SetFractalType(FastNoiseLite::FractalType_None);
 
-    constexpr int woodPercent = 30;
+    constexpr int woodPercent  = 30;
     constexpr int stonePercent = 23 + woodPercent;
-    constexpr int foodPercent = 17 + stonePercent;
+    constexpr int foodPercent  = 17 + stonePercent;
 
     std::vector<float> samples;
-    samples.reserve((gridSize.x / gridOffset.x) * (gridSize.y / gridOffset.y));
+    samples.reserve(cols_ * rows_);
 
-    for (float x = 0.f; x < gridSize.x; x += gridOffset.x)
-      for (float y = 0.f; y < gridSize.y; y += gridOffset.y)
-        samples.push_back((noiseBiome.GetNoise(x, y) + 1.0f) * 0.5f);
+    for (int col = 0; col < cols_; col++)
+      for (int row = 0; row < rows_; row++)
+        samples.push_back((noiseBiome.GetNoise(col * gridOffset.x, row * gridOffset.y) + 1.0f) * 0.5f);
 
     std::sort(samples.begin(), samples.end());
-    int n = samples.size();
+    int n = static_cast<int>(samples.size());
 
-    float t1 = samples[GetSampleIndex(n, woodPercent)];
-    float t2 = samples[GetSampleIndex(n, stonePercent)];
-    float t3 = samples[GetSampleIndex(n, foodPercent)];
+    float t1 = samples[get_sample_index(n, woodPercent)];
+    float t2 = samples[get_sample_index(n, stonePercent)];
+    float t3 = samples[get_sample_index(n, foodPercent)];
 
-    // Passe 2 : placement
-    for (float x = 0.f; x < gridSize.x; x += gridOffset.x) {
-      for (float y = 0.f; y < gridSize.y; y += gridOffset.y) {
+    for (int col = 0; col < cols_; col++) {
+      for (int row = 0; row < rows_; row++) {
+        sf::Vector2f pos = {col * gridOffset.x, row * gridOffset.y};
+        float biomeValue = (noiseBiome.GetNoise(pos.x, pos.y) + 1.0f) * 0.5f;
 
-        float biomeValue = (noiseBiome.GetNoise(x, y) + 1.0f) * 0.5f;
+        int biome = 0;
+        if      (biomeValue < t1) biome = 1;
+        else if (biomeValue < t2) biome = 2;
+        else if (biomeValue < t3) biome = 3;
 
-        // Define biome (0 = empty, 1 = wood, 2 = stone, 3 = food)
-        int biome = 0; // empty
-        if (biomeValue < t1) biome = 1; // wood
-        else if (biomeValue < t2) biome = 2; // stone
-        else if (biomeValue < t3) biome = 3; // food
-
-        //Once we have the biome, if it's not empty, we need to randomly choose the resource based on a percentage
         switch (biome) {
-          case 1:AddResourcesTileBasedOnBiome({x, y}, gridOffset, Biome::kForest);
-            break;
-          case 2:AddResourcesTileBasedOnBiome({x, y}, gridOffset, Biome::kQuarry);
-            break;
-          case 3:AddResourcesTileBasedOnBiome({x, y}, gridOffset, Biome::kField);
-            break;
+          case 1: AddResourcesTileBasedOnBiome(pos, gridOffset, Biome::kForest); break;
+          case 2: AddResourcesTileBasedOnBiome(pos, gridOffset, Biome::kQuarry); break;
+          case 3: AddResourcesTileBasedOnBiome(pos, gridOffset, Biome::kField);  break;
           default: break;
+        }
+      }
+    }
+  }
+
+  if (ground_tile_sheet_.InitTileSheet("_assets/ground.png", 512)) {
+    ground_tile_sheet_.AddTile(BackgroundTiles::kGround, 0, 0);
+    ground_tile_sheet_.AddTile(BackgroundTiles::kGrass, 3, 0);
+    ground_tile_sheet_.AddTile(BackgroundTiles::kFlowerOne, 1, 0);
+    ground_tile_sheet_.AddTile(BackgroundTiles::kFlowerTwo, 2, 0);
+
+    FastNoiseLite noise;
+    noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
+    noise.SetSeed(1337);
+    noise.SetFrequency(0.01f);
+
+    ground_renderer_.SetTexture(ground_tile_sheet_.GetTexture());
+    ground_renderer_.Clear();
+
+    for (int col = 0; col < cols_; col++) {
+      for (int row = 0; row < rows_; row++) {
+        sf::Vector2f pos  = {col * gridOffset.x, row * gridOffset.y};
+        float noiseValue  = std::abs(noise.GetNoise(pos.x, pos.y));
+
+        if (noiseValue <= .2f) {
+          ground_renderer_.AddTile(pos, gridOffset, ground_tile_sheet_.GetBounds(BackgroundTiles::kGround));
+        } else if (noiseValue <= .5f) {
+          ground_renderer_.AddTile(pos, gridOffset, ground_tile_sheet_.GetBounds(BackgroundTiles::kGrass));
+        } else {
+          std::uniform_int_distribution<int> dist(0, 2);
+          if (dist(rng_) % 2 == 0)
+            ground_renderer_.AddTile(pos, gridOffset, ground_tile_sheet_.GetBounds(BackgroundTiles::kFlowerOne));
+          else
+            ground_renderer_.AddTile(pos, gridOffset, ground_tile_sheet_.GetBounds(BackgroundTiles::kFlowerTwo));
         }
       }
     }
@@ -117,14 +113,59 @@ void Tilemap::Setup(sf::Vector2f gridSize, sf::Vector2f gridOffset, int seed) {
     buildings_tile_sheet_.AddTile(DisplayableBuilding::kMineHouse, 2, 0);
     buildings_tile_sheet_.AddTile(DisplayableBuilding::kCanteen, 3, 0);
 
+    buildings_renderer_.SetTexture(buildings_tile_sheet_.GetTexture());
+    buildings_renderer_.Clear();
+
   }
+}
+
+void Tilemap::InitTiles() {
+  tiles_.resize(cols_ * rows_);
+  for (int col = 0; col < cols_; col++)
+    for (int row = 0; row < rows_; row++) {
+      int id = get_tile_id(col, row);
+      tiles_[id].position    = {col * grid_offset_.x, row * grid_offset_.y};
+      tiles_[id].is_walkable = true;
+    }
+}
+
+std::vector<sf::Vector2f> Tilemap::get_walkables() const {
+  std::vector<sf::Vector2f> result;
+  for (const auto& tile : tiles_)
+    if (tile.is_walkable)
+      result.push_back(tile.position);
+  return result;
+}
+
+sf::Vector2f Tilemap::SnapToGridCenter(sf::Vector2f world_position) const {
+  int col = static_cast<int>(world_position.x / grid_offset_.x);
+  int row = static_cast<int>(world_position.y / grid_offset_.y);
+  return {col * grid_offset_.x+grid_offset_.x/2, row * grid_offset_.y+grid_offset_.y/2};
+}
+
+sf::Vector2f Tilemap::SnapToGridOrigin(sf::Vector2f world_position) const {
+  int col = static_cast<int>(world_position.x / grid_offset_.x);
+  int row = static_cast<int>(world_position.y / grid_offset_.y);
+  return {col * grid_offset_.x, row * grid_offset_.y};
+}
+
+bool Tilemap::IsTileWalkable(sf::Vector2f world_position) const {
+  int col = static_cast<int>(world_position.x / grid_offset_.x);
+  int row = static_cast<int>(world_position.y / grid_offset_.y);
+
+  // Vérifie qu'on est dans les limites
+  if (col < 0 || col >= cols_ || row < 0 || row >= rows_) return false;
+
+  return tiles_[get_tile_id(col, row)].is_walkable;
 }
 
 void Tilemap::Draw(sf::RenderWindow &window) {
   ground_renderer_.Draw(window);
   resources_renderer_.Draw(window);
+  buildings_renderer_.Draw(window);
 }
-int Tilemap::GetSampleIndex(int sampleSize, int percent) const {
+
+int Tilemap::get_sample_index(int sampleSize, int percent) const {
   return static_cast<int>(std::clamp(sampleSize * percent / 100, 0, sampleSize - 1));
 }
 
@@ -132,7 +173,6 @@ void Tilemap::AddResourcesTileBasedOnBiome(sf::Vector2f pos, sf::Vector2f gridOf
   std::uniform_int_distribution<int> dist(0, 99);
   int randomNumber = dist(rng_);
 
-  // Vide ?
   if (randomNumber < biome.empty_percentage_) return;
 
   float cumulative = biome.empty_percentage_;
@@ -140,11 +180,19 @@ void Tilemap::AddResourcesTileBasedOnBiome(sf::Vector2f pos, sf::Vector2f gridOf
     cumulative += biome.percentages[i];
     if (randomNumber < cumulative) {
       resources_renderer_.AddTile(pos, gridOffset, resources_tile_sheet_.GetBounds(static_cast<ResourcesType>(i - 1)));
+
+      // Marque la tile comme non walkable
+      int col = static_cast<int>(pos.x / gridOffset.x);
+      int row = static_cast<int>(pos.y / gridOffset.y);
+      tiles_[get_tile_id(col, row)].is_walkable = false;
+
       return;
     }
   }
 }
 
 void Tilemap::AddBuilding(DisplayableBuilding building_to_place, sf::Vector2f building_position) {
-  buildings_renderer_.AddTile(building_position, sf::Vector2f(512, 512), buildings_tile_sheet_.GetBounds(building_to_place));
+  buildings_renderer_.AddTile(building_position, grid_offset_,
+                              buildings_tile_sheet_.GetBounds(building_to_place));
 }
+

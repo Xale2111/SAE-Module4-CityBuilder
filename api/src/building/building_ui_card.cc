@@ -69,6 +69,13 @@ void BuildingCardUI::Init(sf::Vector2f size,
                                  bg_sprite_.getPosition().y + bg_sprite_.getSize().y * .05f});
 }
 
+
+void BuildingCardUI::ResetState() {
+  is_mouse_hover_ = false;
+  is_pressed_ = false;
+  set_backgrounds_color(default_color_);
+}
+
 void BuildingCardUI::Draw(sf::RenderWindow &window) {
   window.draw(bg_card_);
   window.draw(bg_name_);
@@ -93,14 +100,18 @@ void BuildingCardUI::CheckHover(sf::Vector2f mousePosition) {
 
 void BuildingCardUI::HandleInput(const std::optional<sf::Event> &event) {
   if (is_mouse_hover_) {
-    if (const auto *mouse = event->getIf<sf::Event::MouseButtonPressed>()) {
-      is_pressed_ = true;
-    }
-    if (const auto *mouse = event->getIf<sf::Event::MouseButtonReleased>()) {
-      if (is_pressed_) {
-        event_on_press_.Invoke();
+    if (const auto *press = event->getIf<sf::Event::MouseButtonPressed>()) {
+      if (press->button == sf::Mouse::Button::Left) {
+        is_pressed_ = true;
       }
-      is_pressed_ = false;
+    }
+    if (const auto *release = event->getIf<sf::Event::MouseButtonReleased>()) {
+      if (release->button == sf::Mouse::Button::Left) {
+        if (is_pressed_) {
+          event_on_press_.Invoke();
+        }
+        is_pressed_ = false;
+      }
     }
   } else {
     is_pressed_ = false;

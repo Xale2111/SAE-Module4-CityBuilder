@@ -26,6 +26,8 @@ class BuildingCardUI {
   [[nodiscard]] std::span<const BuildingResource> get_needed_resources() { return needed_resources_; };
   [[nodiscard]] const int get_texture_index(){return texture_index_;};
 
+  void ResetState();
+
   void Draw(sf::RenderWindow &window);
   void CheckHover(sf::Vector2f mousePosition);
   void HandleInput(const std::optional<sf::Event>& event);

@@ -9,6 +9,12 @@
 #include <SFML/Graphics/VertexArray.hpp>
 
 namespace graphics {
+
+struct Tile{
+  sf::Vector2f position;
+  bool is_walkable = true;
+};
+
 class TilemapRenderer {
  public:
   void AddTile(sf::Vector2f pos, sf::Vector2f offset, sf::FloatRect texBounds);

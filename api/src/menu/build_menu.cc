@@ -39,7 +39,6 @@ void BuildMenu::Draw(sf::RenderWindow &window) {
     bcui_lumberjack_.Draw(window);
     bcui_mine_.Draw(window);
     bcui_canteen_.Draw(window);
-    DisplaySelectedBuilding(window);
   }
 }
 
@@ -59,6 +58,9 @@ void BuildMenu::HandleInput(const std::optional<sf::Event> &event)
       place_building_press_ = true;
     }
     if (const auto *mouse = event->getIf<sf::Event::MouseButtonReleased>()) {
+      if (place_building_press_) {
+        try_to_place_building_ = true;
+      }
       place_building_press_ = false;
     }
   }
@@ -74,6 +76,41 @@ void BuildMenu::CheckOverBuildMenu(sf::RenderWindow &window) {
     }
   }
   hovering_menu_ = false;
+}
+
+void BuildMenu::DrawBuildingHologram(sf::RenderWindow &window, sf::Vector2f snap_position) {
+  if (toggle_state_) {
+    DisplaySelectedBuilding(window, snap_position);
+  }
+}
+
+void BuildMenu::ManageHologramColor(bool can_place_building) {
+  if (current_display_building_sprite_.has_value()) {
+    if (can_place_building) {
+      current_display_building_sprite_->setColor(building_can_be_placed_color_);
+    } else {
+      current_display_building_sprite_->setColor(building_cannot_be_placed_color_);
+    }
+  }
+}
+
+void BuildMenu::ResetMenu() {
+  ResetSelectedBuilding();
+  toggle_state_ = true;
+  hovering_menu_ = false;
+  place_building_press_ = false;
+
+  bcui_canteen_.ResetState();
+  bcui_food_picker_.ResetState();
+  bcui_lumberjack_.ResetState();
+  bcui_mine_.ResetState();
+  bcui_canteen_.event_on_press_.Clear();
+  bcui_food_picker_.event_on_press_.Clear();
+  bcui_lumberjack_.event_on_press_.Clear();
+  bcui_mine_.event_on_press_.Clear();
+
+  toggle_menu_button_.ResetPressState();
+  toggle_menu_button_.event_on_press_.Clear();
 }
 
 void BuildMenu::HandleButtonsStates(sf::RenderWindow &window) {
@@ -213,12 +250,10 @@ void BuildMenu::ChangeSelectedBuildingSprite(int spriteIndex) {
   }
 }
 
-void BuildMenu::DisplaySelectedBuilding(sf::RenderWindow &window) {
-  //TODO : Snap building on the grid
+void BuildMenu::DisplaySelectedBuilding(sf::RenderWindow &window, sf::Vector2f snap_position) {
   //TODO : Change building color based on what's underneath (if ok -> green, if not -> red)
   if (current_display_building_sprite_.has_value()) {
-
-    current_display_building_sprite_->setPosition(sf::Vector2f(sf::Mouse::getPosition(window)));
+    current_display_building_sprite_->setPosition(snap_position);
     window.draw(*current_display_building_sprite_);
   }
 }
@@ -227,5 +262,6 @@ void BuildMenu::ResetSelectedBuilding() {
   current_selected_building_index_ = DisplayableBuilding::kNone;
   current_display_building_sprite_.reset();
 }
+
 
 }

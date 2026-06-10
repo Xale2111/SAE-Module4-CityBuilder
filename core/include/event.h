@@ -7,10 +7,19 @@
 #include <functional>
 #include <vector>
 
+/// <summary>
+/// Custom event class
+/// In case a button (or anything that is clickable) needs to call a function without returning a ActionCode
+/// ex : Build cards in the build menu or build menu open/close button
+/// </summary>
 class CustomEvent {
  public:
   void operator+=(std::function<void()> callback) {
     callbacks_.push_back(callback);
+  }
+  void Clear()
+  {
+    callbacks_.clear();
   }
   void Invoke() {
     for (auto& callback : callbacks_)

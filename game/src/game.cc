@@ -7,6 +7,8 @@
 #include "menu/menu.h"
 #include "camera/camera.h"
 #include "menu/build_menu.h"
+#include "ai/npc.h"
+#include "ai/npc_manager.h"
 
 namespace game {
 
@@ -18,6 +20,9 @@ Tilemap tilemap_;
 menu::Menu mainMenu_;
 menu::BuildMenu build_menu_;
 camera::Camera camera_;
+
+api::ai::NpcManager npc_manager_;
+
 }
 
 void Setup() {
@@ -30,6 +35,9 @@ void Setup() {
   tilemap_.Setup({DataUtils::kTilemapWidth, DataUtils::kTilemapHeight}, {64, 64});
   camera_.SetupView({DataUtils::kScreenWidth, DataUtils::kScreenHeight},
                     {DataUtils::kTilemapWidth / 2, DataUtils::kTilemapHeight / 2});
+
+  /*npc_manager_.Setup({DataUtils::kTilemapWidth, DataUtils::kTilemapHeight},tilemap_.get_walkables());
+  npc_manager_.SpawnNpc("_assets/tempPNJ.png",sf::Vector2f(DataUtils::kTilemapWidth/2, DataUtils::kTilemapHeight/2));*/
 }
 
 ActionCode LoopMenu() {
@@ -71,19 +79,25 @@ ActionCode LoopGame() {
 
     auto dt = clock.restart().asSeconds();
 
+    //TODO : Optimize so this only play when hologram
+    sf::Vector2f mouse_world = window_.mapPixelToCoords(
+        sf::Mouse::getPosition(window_), camera_.GetView());
+    sf::Vector2f snapped = tilemap_.SnapToGridCenter(mouse_world);
+    bool can_place = tilemap_.IsTileWalkable(snapped);
+
+    build_menu_.ManageHologramColor(can_place);
+
+
     // Process events = Input frame
     while (const std::optional event = window_.pollEvent()) {
       // Close window: exit
       if (event->is<sf::Event::Closed>()) {
+        build_menu_.ResetMenu();
         window_.close();
       }
 
       build_menu_.HandleMenu(window_,*event);
       build_menu_.CheckOverBuildMenu(window_);
-
-      //TODO: Check when hologram is clicked, check if there's nothing under, place the building
-      //If build menu place building
-      tilemap_.AddBuilding(build_menu_.get_current_building_(), sf::Vector2f(sf::Mouse::getPosition(window_)));
 
       if(!build_menu_.get_hover_build_menu())
       {
@@ -92,12 +106,26 @@ ActionCode LoopGame() {
 
     }
 
+    if(build_menu_.try_to_place_building_)
+    {
+      if(build_menu_.get_current_building_() != DisplayableBuilding::kNone && can_place)
+      {
+        snapped = tilemap_.SnapToGridOrigin(mouse_world);
+        tilemap_.AddBuilding(build_menu_.get_current_building_(), snapped);
+      }
+      build_menu_.try_to_place_building_ = false;
+    }
+
+    //npc_manager_.Update(dt);
+
 
     // Graphic frame
     window_.clear();
     //Drawing game related elements
     window_.setView(camera_.GetView());
     tilemap_.Draw(window_);
+    build_menu_.DrawBuildingHologram(window_, snapped);
+    //npc_manager_.Draw(window_);
 
     //Drawing UI related elements
     window_.setView(window_.getDefaultView());

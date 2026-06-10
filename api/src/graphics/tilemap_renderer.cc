@@ -4,7 +4,6 @@
 
 #include "graphics/tilemap_renderer.h"
 
-
 namespace graphics {
     void TilemapRenderer::AddTile(sf::Vector2f pos, sf::Vector2f offset, sf::FloatRect texBounds) {
 

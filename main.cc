@@ -1,6 +1,8 @@
 #include <game.h>
 #include "menu/menu.h"
 
+#include <queue>
+
 int main() {
 
   ActionCode actionCode = ActionCode::kPlay;
@@ -18,4 +20,3 @@ int main() {
   } while (actionCode != ActionCode::kQuit);
 
 }
-
