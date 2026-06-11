@@ -20,10 +20,13 @@ void Camera::LimitCameraArea() {
   const sf::Vector2f center = view_.getCenter();
   const sf::Vector2f size = view_.getSize();
 
+  const float mapWidthPixels = DataUtils::kTilemapWidth * DataUtils::kTileSize;
+  const float mapHeightPixels = DataUtils::kTilemapHeight * DataUtils::kTileSize;
+
   const float kMinX = size.x / 2;
-  const float kMaxX = DataUtils::kTilemapWidth - size.x / 2;
+  const float kMaxX = mapWidthPixels - size.x / 2;
   const float kMinY = size.y / 2;
-  const float kMaxY = DataUtils::kTilemapHeight - size.y / 2;
+  const float kMaxY = mapHeightPixels - size.y / 2;
 
   if (center.x < kMinX) {
     view_.setCenter(sf::Vector2f(kMinX, center.y));

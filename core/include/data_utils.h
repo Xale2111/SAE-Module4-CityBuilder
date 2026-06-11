@@ -4,7 +4,7 @@
 
 #ifndef SAE_ALEXK_CITYBUILDER_CORE_INCLUDE_DATA_UTILS_H_
 #define SAE_ALEXK_CITYBUILDER_CORE_INCLUDE_DATA_UTILS_H_
-enum class ActionCode {
+enum class ActionCode : uint8_t {
   kPlay,
   kMenu,
   kPause,
@@ -12,13 +12,13 @@ enum class ActionCode {
   kQuit
 };
 
-enum class ResourcesType {
+enum class ResourcesType : uint8_t {
   kWood,
   kStone,
   kFood,
 };
 
-enum class DisplayableBuilding{
+enum class DisplayableBuilding : uint8_t {
   kFoodHouse,
   kLumberjackHouse,
   kMineHouse,
@@ -26,13 +26,14 @@ enum class DisplayableBuilding{
   kNone
 };
 
- class DataUtils {
+class DataUtils {
  public :
   static constexpr int kScreenWidth = 1920;
   static constexpr int kScreenHeight = 1080;
 
-  static constexpr int kTilemapWidth = 15000;
-  static constexpr int kTilemapHeight = 15000;
+  static constexpr int kTilemapWidth = 400;
+  static constexpr int kTilemapHeight = 400;
+  static constexpr int kTileSize = 64;
 
 };
 #endif //SAE_ALEXK_CITYBUILDER_CORE_INCLUDE_DATA_UTILS_H_

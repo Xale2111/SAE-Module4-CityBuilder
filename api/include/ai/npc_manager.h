@@ -14,7 +14,7 @@ namespace api::ai {
 
 class NpcManager {
  public:
-  void Setup(sf::Vector2f mapSize, std::span<sf::Vector2f> walkable);
+  void Setup(std::span<sf::Vector2f> walkable);
 
   void SpawnNpc(std::string_view sprite_path, sf::Vector2f spawn_position);
   void Update(float dt);
@@ -23,7 +23,7 @@ class NpcManager {
  private:
   Npc npc_;
 
-  sf::Vector2f map_size_;
+  const sf::Vector2f map_size_ = {DataUtils::kTilemapWidth,DataUtils::kTilemapHeight};
 
   std::unique_ptr<std::span<sf::Vector2f>> walkable_;
 

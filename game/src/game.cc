@@ -31,10 +31,15 @@ void Setup() {
   //window_.create(sf::VideoMode({1920, 1080}), "City Builder de fou malade avec des explosions !!",sf::State::Fullscreen);
   window_.create(sf::VideoMode({DataUtils::kScreenWidth, DataUtils::kScreenHeight}),
                  "City Builder de fou malade avec des explosions !!");
+
   srand(time(0));
-  tilemap_.Setup({DataUtils::kTilemapWidth, DataUtils::kTilemapHeight}, {64, 64});
+
+  tilemap_.Setup({static_cast<float>(DataUtils::kTilemapWidth),static_cast<float>(DataUtils::kTilemapHeight)},{static_cast<float>(DataUtils::kTileSize),static_cast<float>(DataUtils::kTileSize)});
+  float realMapWidth = DataUtils::kTilemapWidth * DataUtils::kTileSize;
+  float realMapHeight = DataUtils::kTilemapHeight * DataUtils::kTileSize;
+
   camera_.SetupView({DataUtils::kScreenWidth, DataUtils::kScreenHeight},
-                    {DataUtils::kTilemapWidth / 2, DataUtils::kTilemapHeight / 2});
+                    {realMapWidth / 2.0f, realMapHeight / 2.0f});
 
   /*npc_manager_.Setup({DataUtils::kTilemapWidth, DataUtils::kTilemapHeight},tilemap_.get_walkables());
   npc_manager_.SpawnNpc("_assets/tempPNJ.png",sf::Vector2f(DataUtils::kTilemapWidth/2, DataUtils::kTilemapHeight/2));*/
@@ -96,20 +101,17 @@ ActionCode LoopGame() {
         window_.close();
       }
 
-      build_menu_.HandleMenu(window_,*event);
+      build_menu_.HandleMenu(window_, *event);
       build_menu_.CheckOverBuildMenu(window_);
 
-      if(!build_menu_.get_hover_build_menu())
-      {
+      if (!build_menu_.get_hover_build_menu()) {
         camera_.HandleMouse(*event, window_);
       }
 
     }
 
-    if(build_menu_.try_to_place_building_)
-    {
-      if(build_menu_.get_current_building_() != DisplayableBuilding::kNone && can_place)
-      {
+    if (build_menu_.try_to_place_building_) {
+      if (build_menu_.get_current_building_() != DisplayableBuilding::kNone && can_place) {
         snapped = tilemap_.SnapToGridOrigin(mouse_world);
         tilemap_.AddBuilding(build_menu_.get_current_building_(), snapped);
       }

@@ -11,10 +11,10 @@ std::random_device r;
 std::default_random_engine rng_(r());
 
 void Tilemap::Setup(sf::Vector2f gridSize, sf::Vector2f gridOffset, int seed) {
-  map_size_    = gridSize;
+
   grid_offset_ = gridOffset;
-  cols_        = static_cast<int>(gridSize.x / gridOffset.x);
-  rows_        = static_cast<int>(gridSize.y / gridOffset.y);
+  total_cols_ = static_cast<int>(gridSize.x);
+  total_rows_ = static_cast<int>(gridSize.y);
 
   InitTiles();
 
@@ -35,15 +35,15 @@ void Tilemap::Setup(sf::Vector2f gridSize, sf::Vector2f gridOffset, int seed) {
     noiseBiome.SetCellularJitter(0.67f);
     noiseBiome.SetFractalType(FastNoiseLite::FractalType_None);
 
-    constexpr int woodPercent  = 30;
+    constexpr int woodPercent = 30;
     constexpr int stonePercent = 23 + woodPercent;
-    constexpr int foodPercent  = 17 + stonePercent;
+    constexpr int foodPercent = 17 + stonePercent;
 
     std::vector<float> samples;
-    samples.reserve(cols_ * rows_);
+    samples.reserve(total_cols_ * total_rows_);
 
-    for (int col = 0; col < cols_; col++)
-      for (int row = 0; row < rows_; row++)
+    for (int col = 0; col < total_cols_; col++)
+      for (int row = 0; row < total_rows_; row++)
         samples.push_back((noiseBiome.GetNoise(col * gridOffset.x, row * gridOffset.y) + 1.0f) * 0.5f);
 
     std::sort(samples.begin(), samples.end());
@@ -53,20 +53,23 @@ void Tilemap::Setup(sf::Vector2f gridSize, sf::Vector2f gridOffset, int seed) {
     float t2 = samples[get_sample_index(n, stonePercent)];
     float t3 = samples[get_sample_index(n, foodPercent)];
 
-    for (int col = 0; col < cols_; col++) {
-      for (int row = 0; row < rows_; row++) {
+    for (int col = 0; col < total_cols_; col++) {
+      for (int row = 0; row < total_rows_; row++) {
         sf::Vector2f pos = {col * gridOffset.x, row * gridOffset.y};
         float biomeValue = (noiseBiome.GetNoise(pos.x, pos.y) + 1.0f) * 0.5f;
 
         int biome = 0;
-        if      (biomeValue < t1) biome = 1;
+        if (biomeValue < t1) biome = 1;
         else if (biomeValue < t2) biome = 2;
         else if (biomeValue < t3) biome = 3;
 
         switch (biome) {
-          case 1: AddResourcesTileBasedOnBiome(pos, gridOffset, Biome::kForest); break;
-          case 2: AddResourcesTileBasedOnBiome(pos, gridOffset, Biome::kQuarry); break;
-          case 3: AddResourcesTileBasedOnBiome(pos, gridOffset, Biome::kField);  break;
+          case 1: AddResourcesTileBasedOnBiome(pos, gridOffset, Biome::kForest);
+            break;
+          case 2: AddResourcesTileBasedOnBiome(pos, gridOffset, Biome::kQuarry);
+            break;
+          case 3: AddResourcesTileBasedOnBiome(pos, gridOffset, Biome::kField);
+            break;
           default: break;
         }
       }
@@ -87,10 +90,10 @@ void Tilemap::Setup(sf::Vector2f gridSize, sf::Vector2f gridOffset, int seed) {
     ground_renderer_.SetTexture(ground_tile_sheet_.GetTexture());
     ground_renderer_.Clear();
 
-    for (int col = 0; col < cols_; col++) {
-      for (int row = 0; row < rows_; row++) {
-        sf::Vector2f pos  = {col * gridOffset.x, row * gridOffset.y};
-        float noiseValue  = std::abs(noise.GetNoise(pos.x, pos.y));
+    for (int col = 0; col < total_cols_; col++) {
+      for (int row = 0; row < total_rows_; row++) {
+        sf::Vector2f pos = {col * gridOffset.x, row * gridOffset.y};
+        float noiseValue = std::abs(noise.GetNoise(pos.x, pos.y));
 
         if (noiseValue <= .2f) {
           ground_renderer_.AddTile(pos, gridOffset, ground_tile_sheet_.GetBounds(BackgroundTiles::kGround));
@@ -120,27 +123,19 @@ void Tilemap::Setup(sf::Vector2f gridSize, sf::Vector2f gridOffset, int seed) {
 }
 
 void Tilemap::InitTiles() {
-  tiles_.resize(cols_ * rows_);
-  for (int col = 0; col < cols_; col++)
-    for (int row = 0; row < rows_; row++) {
+  tiles_.resize(total_cols_ * total_rows_);
+  for (int col = 0; col < total_cols_; col++)
+    for (int row = 0; row < total_rows_; row++) {
       int id = get_tile_id(col, row);
-      tiles_[id].position    = {col * grid_offset_.x, row * grid_offset_.y};
+      tiles_[id].position = {col * grid_offset_.x, row * grid_offset_.y};
       tiles_[id].is_walkable = true;
     }
-}
-
-std::vector<sf::Vector2f> Tilemap::get_walkables() const {
-  std::vector<sf::Vector2f> result;
-  for (const auto& tile : tiles_)
-    if (tile.is_walkable)
-      result.push_back(tile.position);
-  return result;
 }
 
 sf::Vector2f Tilemap::SnapToGridCenter(sf::Vector2f world_position) const {
   int col = static_cast<int>(world_position.x / grid_offset_.x);
   int row = static_cast<int>(world_position.y / grid_offset_.y);
-  return {col * grid_offset_.x+grid_offset_.x/2, row * grid_offset_.y+grid_offset_.y/2};
+  return {col * grid_offset_.x + grid_offset_.x / 2, row * grid_offset_.y + grid_offset_.y / 2};
 }
 
 sf::Vector2f Tilemap::SnapToGridOrigin(sf::Vector2f world_position) const {
@@ -154,7 +149,7 @@ bool Tilemap::IsTileWalkable(sf::Vector2f world_position) const {
   int row = static_cast<int>(world_position.y / grid_offset_.y);
 
   // Vérifie qu'on est dans les limites
-  if (col < 0 || col >= cols_ || row < 0 || row >= rows_) return false;
+  if (col < 0 || col >= total_cols_ || row < 0 || row >= total_rows_) return false;
 
   return tiles_[get_tile_id(col, row)].is_walkable;
 }
@@ -194,5 +189,18 @@ void Tilemap::AddResourcesTileBasedOnBiome(sf::Vector2f pos, sf::Vector2f gridOf
 void Tilemap::AddBuilding(DisplayableBuilding building_to_place, sf::Vector2f building_position) {
   buildings_renderer_.AddTile(building_position, grid_offset_,
                               buildings_tile_sheet_.GetBounds(building_to_place));
+
+  int col = static_cast<int>(building_position.x / grid_offset_.x);
+  int row = static_cast<int>(building_position.y / grid_offset_.y);
+  tiles_[get_tile_id(col, row)].is_walkable = false;
 }
+/*
+void Tilemap::DebugWalkable() {
+  for (int row = 0; row < total_rows_; ++row) {
+    for (int col = 0; col < total_cols_; col++) {
+      int index = get_tile_id(col, row);
+      std::println("Tile position : {},{}  |  index : {}", col, row, index);
+    }
+  }
+}*/
 

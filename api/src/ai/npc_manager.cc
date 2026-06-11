@@ -8,11 +8,9 @@
 #include "ai/npc_manager.h"
 
 namespace api::ai {
-void NpcManager::Setup(sf::Vector2f mapSize, std::span<sf::Vector2f> walkable) {
-  map_size_ = mapSize;
+void NpcManager::Setup(std::span<sf::Vector2f> walkable) {
 
   *walkable_ = std::move(walkable);
-
 }
 
 void NpcManager::SpawnNpc(std::string_view sprite_path, sf::Vector2f spawn_position) {

@@ -54,14 +54,18 @@ void BuildMenu::HandleInput(const std::optional<sf::Event> &event)
   toggle_menu_button_.HandleInput(event);
 
   if(toggle_state_ && !hovering_menu_){
-    if (const auto *mouse = event->getIf<sf::Event::MouseButtonPressed>()) {
-      place_building_press_ = true;
-    }
-    if (const auto *mouse = event->getIf<sf::Event::MouseButtonReleased>()) {
-      if (place_building_press_) {
-        try_to_place_building_ = true;
+    if (const auto *press = event->getIf<sf::Event::MouseButtonPressed>()) {
+      if (press->button == sf::Mouse::Button::Left) {
+        place_building_press_ = true;
       }
-      place_building_press_ = false;
+    }
+    if (const auto *release = event->getIf<sf::Event::MouseButtonReleased>()) {
+      if (release->button == sf::Mouse::Button::Left) {
+        if (place_building_press_) {
+          try_to_place_building_ = true;
+        }
+        place_building_press_ = false;
+      }
     }
   }
 
@@ -143,19 +147,19 @@ void BuildMenu::SetupToggleButton() {
 }
 
 void BuildMenu::SetupBuildingCards() {
-  // Taille de la carte : 20% largeur et 90% hauteur du bg_shape_
+  //20% width and 90% height
   const sf::Vector2f card_size = {
       bg_shape_.getSize().x * 0.15f,
       bg_shape_.getSize().y * 0.9f
   };
 
-  // 5 espaces égaux pour 4 cartes : | gap | carte | gap | carte | gap | carte | gap | carte | gap |
+  //space evenly between cards
   const float gap = (bg_shape_.getSize().x - 6.5f * card_size.x) / 5.f;
 
-  // Y centré verticalement dans le bg (origin est au centre de la carte)
+  //Center Y vertically
   const float card_y = position_.y + bg_shape_.getSize().y * .05f;
 
-  // X de la première carte
+  //First card X
   const float first_card_x = position_.x + gap;
   const float card_step = card_size.x + gap;
 

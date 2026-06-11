@@ -22,7 +22,7 @@ class Camera {
   float dezoom_factor_ = 1.1f;
 
   const float max_zoom_ = .4f;
-  const float max_dezoom_ = 2.f;
+  const float max_dezoom_ = 5.f;
 
   bool is_dragging_ = false;
   sf::Vector2i last_mouse_pos_;
