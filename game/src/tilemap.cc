@@ -118,18 +118,20 @@ void Tilemap::Setup(sf::Vector2f gridSize, sf::Vector2f gridOffset, int seed) {
 
     buildings_renderer_.SetTexture(buildings_tile_sheet_.GetTexture());
     buildings_renderer_.Clear();
-
   }
+
+  UpdateWalkables();
 }
 
 void Tilemap::InitTiles() {
   tiles_.resize(total_cols_ * total_rows_);
-  for (int col = 0; col < total_cols_; col++)
+  for (int col = 0; col < total_cols_; col++) {
     for (int row = 0; row < total_rows_; row++) {
       int id = get_tile_id(col, row);
       tiles_[id].position = {col * grid_offset_.x, row * grid_offset_.y};
       tiles_[id].is_walkable = true;
     }
+  }
 }
 
 sf::Vector2f Tilemap::SnapToGridCenter(sf::Vector2f world_position) const {
@@ -148,7 +150,7 @@ bool Tilemap::IsTileWalkable(sf::Vector2f world_position) const {
   int col = static_cast<int>(world_position.x / grid_offset_.x);
   int row = static_cast<int>(world_position.y / grid_offset_.y);
 
-  // Vérifie qu'on est dans les limites
+  //check we are inside the map
   if (col < 0 || col >= total_cols_ || row < 0 || row >= total_rows_) return false;
 
   return tiles_[get_tile_id(col, row)].is_walkable;
@@ -158,6 +160,14 @@ void Tilemap::Draw(sf::RenderWindow &window) {
   ground_renderer_.Draw(window);
   resources_renderer_.Draw(window);
   buildings_renderer_.Draw(window);
+}
+void Tilemap::AddBuilding(DisplayableBuilding building_to_place, sf::Vector2f building_position) {
+  buildings_renderer_.AddTile(building_position, grid_offset_,
+                              buildings_tile_sheet_.GetBounds(building_to_place));
+
+  int col = static_cast<int>(building_position.x / grid_offset_.x);
+  int row = static_cast<int>(building_position.y / grid_offset_.y);
+  tiles_[get_tile_id(col, row)].is_walkable = false;
 }
 
 int Tilemap::get_sample_index(int sampleSize, int percent) const {
@@ -186,14 +196,16 @@ void Tilemap::AddResourcesTileBasedOnBiome(sf::Vector2f pos, sf::Vector2f gridOf
   }
 }
 
-void Tilemap::AddBuilding(DisplayableBuilding building_to_place, sf::Vector2f building_position) {
-  buildings_renderer_.AddTile(building_position, grid_offset_,
-                              buildings_tile_sheet_.GetBounds(building_to_place));
-
-  int col = static_cast<int>(building_position.x / grid_offset_.x);
-  int row = static_cast<int>(building_position.y / grid_offset_.y);
-  tiles_[get_tile_id(col, row)].is_walkable = false;
+void Tilemap::UpdateWalkables() {
+  walkables_.clear();
+  for (const auto& tile : tiles_) {
+    if (tile.is_walkable) {
+      walkables_.push_back(tile);
+    }
+  }
 }
+
+
 /*
 void Tilemap::DebugWalkable() {
   for (int row = 0; row < total_rows_; ++row) {

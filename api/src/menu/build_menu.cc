@@ -255,7 +255,6 @@ void BuildMenu::ChangeSelectedBuildingSprite(int spriteIndex) {
 }
 
 void BuildMenu::DisplaySelectedBuilding(sf::RenderWindow &window, sf::Vector2f snap_position) {
-  //TODO : Change building color based on what's underneath (if ok -> green, if not -> red)
   if (current_display_building_sprite_.has_value()) {
     current_display_building_sprite_->setPosition(snap_position);
     window.draw(*current_display_building_sprite_);

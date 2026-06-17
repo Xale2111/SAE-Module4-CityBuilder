@@ -6,6 +6,7 @@
 #define SAE_ALEXK_CITYBUILDER_API_INCLUDE_AI_NPC_MANAGER_H_
 
 #include <SFML/System/Vector2.hpp>
+#include "graphics/tilemap_renderer.h"
 #include <vector>
 #include <span>
 #include "npc.h"
@@ -14,18 +15,17 @@ namespace api::ai {
 
 class NpcManager {
  public:
-  void Setup(std::span<sf::Vector2f> walkable);
+  void Setup(std::vector<graphics::Tile>& walkable);
 
   void SpawnNpc(std::string_view sprite_path, sf::Vector2f spawn_position);
   void Update(float dt);
   void Draw(sf::RenderWindow& window);
 
  private:
-  Npc npc_;
+  std::vector<Npc> npcs_;
 
-  const sf::Vector2f map_size_ = {DataUtils::kTilemapWidth,DataUtils::kTilemapHeight};
-
-  std::unique_ptr<std::span<sf::Vector2f>> walkable_;
+  std::vector<sf::Vector2i> walkable_;
+  //const sf::Vector2f map_size_ = {DataUtils::kTilemapWidth,DataUtils::kTilemapHeight};
 
   std::vector<sf::Vector2f>  open_list_;
   std::vector<sf::Vector2f> visited_list_;

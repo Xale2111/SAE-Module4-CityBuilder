@@ -16,6 +16,7 @@
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/System/Vector2.hpp>
 
+#include "ai/a_start_graph.h"
 #include "ai/bt_node.h"
 #include "motion/motor.h"
 #include <mdspan>
@@ -26,21 +27,27 @@ namespace api::ai {
 // No pathfinding -- movement is handled by a simple linear Motor.
 class Npc {
  public:
-  void Setup(std::string_view sprite_path, sf::Vector2f start_position);
+  void Setup(std::string_view sprite_path, sf::Vector2f start_position, std::vector<sf::Vector2i>& walkable);
   void SetDestination(sf::Vector2f destination);
   void Update(float dt);
 //  void AstarPath(std::mdspan<int, std::extents<size_t,2>> tilemap, sf::Vector2f destination);
   void Draw(sf::RenderWindow& window);
+  [[nodiscard]] core::ai::behaviour_tree::Status PickRandomDestination();
+
 
  private:
   // Behaviour-tree actions (bound into the tree via lambdas in Setup()).
   [[nodiscard]] core::ai::behaviour_tree::Status MoveToDestination() const;
 
-  static constexpr float kSpeed = 300.f;
+  static constexpr float kSpeed = 500.f;
 
   std::unique_ptr<sf::Texture> texture_ = std::make_unique<sf::Texture>();
   std::optional<sf::Sprite> sprite_;
 
+
+  ai::AStarGraph graph_;
+  std::vector<sf::Vector2i> path_;
+  std::vector<sf::Vector2i> walkable_;
   motion::Motor motor_;
   std::unique_ptr<core::ai::behaviour_tree::Node> bt_root_;
 

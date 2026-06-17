@@ -61,7 +61,7 @@ void Camera::HandleMouse(const std::optional<sf::Event> &event, sf::RenderWindow
     if (delta > 0 && view_.getSize().x > max_zoom_ * DataUtils::kScreenWidth) {
       view_.zoom(zoom_factor_);
     }
-      //zoom out
+    //zoom out
     else if (delta < 0 && view_.getSize().x < max_dezoom_ * DataUtils::kScreenWidth) {
       view_.zoom(dezoom_factor_);
       LimitCameraArea();

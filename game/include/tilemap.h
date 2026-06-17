@@ -13,6 +13,7 @@
 #include "biome.h"
 #include <random>
 #include "data_utils.h"
+#include <ranges>
 
 enum class BackgroundTiles {
   kGround,
@@ -28,8 +29,8 @@ class Tilemap {
   void AddBuilding(DisplayableBuilding building_to_place, sf::Vector2f building_position);
 
   [[nodiscard]] graphics::Tile &get_tile(int id) { return tiles_[id]; }
+  [[nodiscard]] std::vector<graphics::Tile> &get_walkables() {return walkables_;};
   [[nodiscard]] int get_tile_id(int col, int row) const { return row * total_cols_ + col; }
-  //[[nodiscard]] std::vector<sf::Vector2f> get_walkables() const;
 
   [[nodiscard]] sf::Vector2f SnapToGridCenter(sf::Vector2f world_position) const ;
   [[nodiscard]] sf::Vector2f SnapToGridOrigin(sf::Vector2f world_position) const ;
@@ -45,6 +46,7 @@ class Tilemap {
   graphics::TileSheet<DisplayableBuilding> buildings_tile_sheet_;
 
   std::vector<graphics::Tile> tiles_;
+  std::vector<graphics::Tile> walkables_;
 
   sf::Vector2f grid_offset_;
   int total_cols_ = 0;
@@ -53,6 +55,8 @@ class Tilemap {
   [[nodiscard]] int get_sample_index(int sampleSize, int percent) const;
   void AddResourcesTileBasedOnBiome(sf::Vector2f pos, sf::Vector2f gridOffset, Biome::Biome biome);
   void InitTiles();
+  void UpdateWalkables();
+
 };
 
 #endif //SAE_ALEXK_CITYBUILDER_API_INCLUDE_GRAPHICS_TILEMAP_H_

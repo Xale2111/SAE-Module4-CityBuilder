@@ -41,8 +41,8 @@ void Setup() {
   camera_.SetupView({DataUtils::kScreenWidth, DataUtils::kScreenHeight},
                     {realMapWidth / 2.0f, realMapHeight / 2.0f});
 
-  /*npc_manager_.Setup({DataUtils::kTilemapWidth, DataUtils::kTilemapHeight},tilemap_.get_walkables());
-  npc_manager_.SpawnNpc("_assets/tempPNJ.png",sf::Vector2f(DataUtils::kTilemapWidth/2, DataUtils::kTilemapHeight/2));*/
+  npc_manager_.Setup(tilemap_.get_walkables());
+  npc_manager_.SpawnNpc("_assets/tempPNJ.png",{realMapWidth / 2.0f, realMapHeight / 2.0f});
 }
 
 ActionCode LoopMenu() {
@@ -118,7 +118,7 @@ ActionCode LoopGame() {
       build_menu_.try_to_place_building_ = false;
     }
 
-    //npc_manager_.Update(dt);
+    npc_manager_.Update(dt);
 
 
     // Graphic frame
@@ -127,7 +127,7 @@ ActionCode LoopGame() {
     window_.setView(camera_.GetView());
     tilemap_.Draw(window_);
     build_menu_.DrawBuildingHologram(window_, snapped);
-    //npc_manager_.Draw(window_);
+    npc_manager_.Draw(window_);
 
     //Drawing UI related elements
     window_.setView(window_.getDefaultView());
