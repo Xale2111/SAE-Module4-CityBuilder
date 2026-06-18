@@ -10,11 +10,10 @@
 std::random_device r;
 std::default_random_engine rng_(r());
 
-void Tilemap::Setup(sf::Vector2f gridSize, sf::Vector2f gridOffset, int seed) {
+void Tilemap::Setup(int seed){
 
-  grid_offset_ = gridOffset;
-  total_cols_ = static_cast<int>(gridSize.x);
-  total_rows_ = static_cast<int>(gridSize.y);
+  tiles_.resize(total_cols_*total_rows_);
+  walkables_.reserve(total_cols_*total_rows_);
 
   InitTiles();
 
@@ -44,7 +43,7 @@ void Tilemap::Setup(sf::Vector2f gridSize, sf::Vector2f gridOffset, int seed) {
 
     for (int col = 0; col < total_cols_; col++)
       for (int row = 0; row < total_rows_; row++)
-        samples.push_back((noiseBiome.GetNoise(col * gridOffset.x, row * gridOffset.y) + 1.0f) * 0.5f);
+        samples.push_back((noiseBiome.GetNoise(col * grid_offset_.x, row * grid_offset_.y) + 1.0f) * 0.5f);
 
     std::sort(samples.begin(), samples.end());
     int n = static_cast<int>(samples.size());
@@ -55,7 +54,7 @@ void Tilemap::Setup(sf::Vector2f gridSize, sf::Vector2f gridOffset, int seed) {
 
     for (int col = 0; col < total_cols_; col++) {
       for (int row = 0; row < total_rows_; row++) {
-        sf::Vector2f pos = {col * gridOffset.x, row * gridOffset.y};
+        sf::Vector2f pos = {col * grid_offset_.x, row * grid_offset_.y};
         float biomeValue = (noiseBiome.GetNoise(pos.x, pos.y) + 1.0f) * 0.5f;
 
         int biome = 0;
@@ -64,14 +63,21 @@ void Tilemap::Setup(sf::Vector2f gridSize, sf::Vector2f gridOffset, int seed) {
         else if (biomeValue < t3) biome = 3;
 
         switch (biome) {
-          case 1: AddResourcesTileBasedOnBiome(pos, gridOffset, Biome::kForest);
+          case 1: AddResourcesTileBasedOnBiome(pos, grid_offset_, Biome::kForest);
             break;
-          case 2: AddResourcesTileBasedOnBiome(pos, gridOffset, Biome::kQuarry);
+          case 2: AddResourcesTileBasedOnBiome(pos, grid_offset_, Biome::kQuarry);
             break;
-          case 3: AddResourcesTileBasedOnBiome(pos, gridOffset, Biome::kField);
+          case 3: AddResourcesTileBasedOnBiome(pos, grid_offset_, Biome::kField);
             break;
           default: break;
         }
+      }
+    }
+
+    for(auto& tile : tiles_){
+      if(tile.is_walkable)
+      {
+        walkables_.push_back({static_cast<int>(tile.position.x), static_cast<int>(tile.position.y)});
       }
     }
   }
@@ -92,19 +98,19 @@ void Tilemap::Setup(sf::Vector2f gridSize, sf::Vector2f gridOffset, int seed) {
 
     for (int col = 0; col < total_cols_; col++) {
       for (int row = 0; row < total_rows_; row++) {
-        sf::Vector2f pos = {col * gridOffset.x, row * gridOffset.y};
+        sf::Vector2f pos = {col * grid_offset_.x, row * grid_offset_.y};
         float noiseValue = std::abs(noise.GetNoise(pos.x, pos.y));
 
         if (noiseValue <= .2f) {
-          ground_renderer_.AddTile(pos, gridOffset, ground_tile_sheet_.GetBounds(BackgroundTiles::kGround));
+          ground_renderer_.AddTile(pos, grid_offset_, ground_tile_sheet_.GetBounds(BackgroundTiles::kGround));
         } else if (noiseValue <= .5f) {
-          ground_renderer_.AddTile(pos, gridOffset, ground_tile_sheet_.GetBounds(BackgroundTiles::kGrass));
+          ground_renderer_.AddTile(pos, grid_offset_, ground_tile_sheet_.GetBounds(BackgroundTiles::kGrass));
         } else {
           std::uniform_int_distribution<int> dist(0, 2);
           if (dist(rng_) % 2 == 0)
-            ground_renderer_.AddTile(pos, gridOffset, ground_tile_sheet_.GetBounds(BackgroundTiles::kFlowerOne));
+            ground_renderer_.AddTile(pos, grid_offset_, ground_tile_sheet_.GetBounds(BackgroundTiles::kFlowerOne));
           else
-            ground_renderer_.AddTile(pos, gridOffset, ground_tile_sheet_.GetBounds(BackgroundTiles::kFlowerTwo));
+            ground_renderer_.AddTile(pos, grid_offset_, ground_tile_sheet_.GetBounds(BackgroundTiles::kFlowerTwo));
         }
       }
     }
@@ -120,11 +126,9 @@ void Tilemap::Setup(sf::Vector2f gridSize, sf::Vector2f gridOffset, int seed) {
     buildings_renderer_.Clear();
   }
 
-  UpdateWalkables();
 }
 
 void Tilemap::InitTiles() {
-  tiles_.resize(total_cols_ * total_rows_);
   for (int col = 0; col < total_cols_; col++) {
     for (int row = 0; row < total_rows_; row++) {
       int id = get_tile_id(col, row);
@@ -192,15 +196,6 @@ void Tilemap::AddResourcesTileBasedOnBiome(sf::Vector2f pos, sf::Vector2f gridOf
       tiles_[get_tile_id(col, row)].is_walkable = false;
 
       return;
-    }
-  }
-}
-
-void Tilemap::UpdateWalkables() {
-  walkables_.clear();
-  for (const auto& tile : tiles_) {
-    if (tile.is_walkable) {
-      walkables_.push_back(tile);
     }
   }
 }

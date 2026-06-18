@@ -9,6 +9,7 @@
 #include <vector>
 #include <SFML/System/Vector2.hpp>
 #include <queue>
+#include <span>
 #include <array>
 
 namespace api::ai{
@@ -46,7 +47,7 @@ struct AStarVertexHash{
 class AStarGraph
 {
  public:
-  [[nodiscard]] std::vector<sf::Vector2i> GetPath(sf::Vector2i start, sf::Vector2i end, std::vector<sf::Vector2i>& walkable);
+  [[nodiscard]] std::vector<sf::Vector2i> GetPath(sf::Vector2i start, sf::Vector2i end, std::span<sf::Vector2i> walkable);
  private:
 
   void AddNode(sf::Vector2i node);

@@ -27,6 +27,9 @@ api::ai::NpcManager npc_manager_;
 
 void Setup() {
 
+  window_.setFramerateLimit(60);
+  window_.setVerticalSyncEnabled(true);
+
   // Create the main window
   //window_.create(sf::VideoMode({1920, 1080}), "City Builder de fou malade avec des explosions !!",sf::State::Fullscreen);
   window_.create(sf::VideoMode({DataUtils::kScreenWidth, DataUtils::kScreenHeight}),
@@ -34,14 +37,13 @@ void Setup() {
 
   srand(time(0));
 
-  tilemap_.Setup({static_cast<float>(DataUtils::kTilemapWidth),static_cast<float>(DataUtils::kTilemapHeight)},{static_cast<float>(DataUtils::kTileSize),static_cast<float>(DataUtils::kTileSize)});
+  tilemap_.Setup();
   float realMapWidth = DataUtils::kTilemapWidth * DataUtils::kTileSize;
   float realMapHeight = DataUtils::kTilemapHeight * DataUtils::kTileSize;
 
   camera_.SetupView({DataUtils::kScreenWidth, DataUtils::kScreenHeight},
                     {realMapWidth / 2.0f, realMapHeight / 2.0f});
 
-  npc_manager_.Setup(tilemap_.get_walkables());
   npc_manager_.SpawnNpc("_assets/tempPNJ.png",{realMapWidth / 2.0f, realMapHeight / 2.0f});
 }
 
@@ -118,8 +120,8 @@ ActionCode LoopGame() {
       build_menu_.try_to_place_building_ = false;
     }
 
+    npc_manager_.UpdatePath(tilemap_.get_walkables());
     npc_manager_.Update(dt);
-
 
     // Graphic frame
     window_.clear();

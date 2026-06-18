@@ -15,18 +15,17 @@ namespace api::ai {
 
 class NpcManager {
  public:
-  void Setup(std::vector<graphics::Tile>& walkable);
 
   void SpawnNpc(std::string_view sprite_path, sf::Vector2f spawn_position);
   void Update(float dt);
+  void UpdatePath(std::span<sf::Vector2i> walkables);
   void Draw(sf::RenderWindow& window);
 
  private:
   std::vector<Npc> npcs_;
 
-  std::vector<sf::Vector2i> walkable_;
-  //const sf::Vector2f map_size_ = {DataUtils::kTilemapWidth,DataUtils::kTilemapHeight};
 
+  AStarGraph graph_;
   std::vector<sf::Vector2f>  open_list_;
   std::vector<sf::Vector2f> visited_list_;
   std::vector<sf::Vector2f> closed_list_;

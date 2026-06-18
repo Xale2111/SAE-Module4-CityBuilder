@@ -14,6 +14,7 @@
 #include <random>
 #include "data_utils.h"
 #include <ranges>
+#include <unordered_set>
 
 enum class BackgroundTiles {
   kGround,
@@ -24,12 +25,13 @@ enum class BackgroundTiles {
 
 class Tilemap {
  public:
-  void Setup(sf::Vector2f gridSize, sf::Vector2f gridOffset, int seed = 1067);
+  void Setup(int seed = 1067);
   void Draw(sf::RenderWindow &window);
   void AddBuilding(DisplayableBuilding building_to_place, sf::Vector2f building_position);
 
   [[nodiscard]] graphics::Tile &get_tile(int id) { return tiles_[id]; }
-  [[nodiscard]] std::vector<graphics::Tile> &get_walkables() {return walkables_;};
+  [[nodiscard]] std::vector<graphics::Tile> &get_tiles(int id) { return tiles_; }
+  [[nodiscard]] std::vector<sf::Vector2i> &get_walkables() { return walkables_; }
   [[nodiscard]] int get_tile_id(int col, int row) const { return row * total_cols_ + col; }
 
   [[nodiscard]] sf::Vector2f SnapToGridCenter(sf::Vector2f world_position) const ;
@@ -46,16 +48,15 @@ class Tilemap {
   graphics::TileSheet<DisplayableBuilding> buildings_tile_sheet_;
 
   std::vector<graphics::Tile> tiles_;
-  std::vector<graphics::Tile> walkables_;
+  std::vector<sf::Vector2i> walkables_;
 
-  sf::Vector2f grid_offset_;
-  int total_cols_ = 0;
-  int total_rows_ = 0;
+  const sf::Vector2f grid_offset_ = {DataUtils::kTileSize, DataUtils::kTileSize};
+  const int total_cols_ = DataUtils::kTilemapWidth;
+  const int total_rows_ = DataUtils::kTilemapHeight;
 
   [[nodiscard]] int get_sample_index(int sampleSize, int percent) const;
   void AddResourcesTileBasedOnBiome(sf::Vector2f pos, sf::Vector2f gridOffset, Biome::Biome biome);
   void InitTiles();
-  void UpdateWalkables();
 
 };
 

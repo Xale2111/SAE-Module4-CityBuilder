@@ -4,38 +4,36 @@
 #include "ai/bt_selector.h"
 #include "ai/bt_node_factory.h"
 
+#include <print>
+
 #include <format>
 #include "data_utils.h"
 
 namespace api::ai {
 
-void Npc::Setup(std::string_view sprite_path, const sf::Vector2f start_position, std::vector<sf::Vector2i>& walkable) {
+void Npc::Setup(std::string_view sprite_path, const sf::Vector2f start_position) {
 
   if (texture_->loadFromFile(std::string(sprite_path))) {
     sprite_ = sf::Sprite(*texture_);
   }
+  srand(time(NULL));
 
-  walkable_ = walkable;
   motor_.SetPosition(start_position);
   motor_.SetDestination(start_position);  // stay put until the first pick
   motor_.SetSpeed(kSpeed);
 
+  current_position_ = {static_cast<int>(start_position.x),static_cast<int>(start_position.y)};
+  destination_ = {static_cast<int>(start_position.x),static_cast<int>(start_position.y)};
+
   using namespace core::ai::behaviour_tree;
-
-  auto alwaysSuccess = MakeAction([] { return Status::kSuccess; });
-
-  std::unique_ptr<SelectorNode> selector = std::make_unique<SelectorNode>();
-  selector->AddChild(MakeAction([this] { return Status::kFailure; }));
-
 
 
   std::unique_ptr<SequenceNode> wanderSequence = MakeSequence();
   wanderSequence->AddChild(MakeAction([this] { return PickRandomDestination(); }));
   wanderSequence->AddChild(MakeAction([this] { return MoveToDestination(); }));
 
-  selector->AddChild(std::move(wanderSequence));
 
-  bt_root_ = std::move(selector);
+  bt_root_ = std::move(wanderSequence);
 
   // Rough wander behaviour:
   // Sequence (pick a random destination, then move to it)
@@ -58,37 +56,56 @@ void Npc::Draw(sf::RenderWindow &window) {
   }
 }
 
+void Npc::set_path(std::vector<sf::Vector2i> newPath){
+  path_ = std::move(newPath);
 
-void Npc::SetDestination(sf::Vector2f destination) {
-  sf::Vector2i start = {static_cast<int>(motor_.GetPosition().x),static_cast<int>(motor_.GetPosition().y)};
-  sf::Vector2i end = {static_cast<int>(destination.x),static_cast<int>(destination.y)};
-
-  path_ = graph_.GetPath(start, end, walkable_);
-
-  if (!path_.empty()) {
-    motor_.SetDestination({static_cast<float>(path_.front().x * DataUtils::kTileSize),
-                           static_cast<float>(path_.front().y * DataUtils::kTileSize)});
-  } else {
-    // Aucun chemin trouvé, rester sur place ou gérer l'erreur
+  if(!path_.empty())
+  {
+    motor_.SetDestination({static_cast<float>(path_.front().x),static_cast<float>(path_.front().y)});
+  }
+  else
+  {
     motor_.SetDestination(motor_.GetPosition());
   }
-
 }
 
 core::ai::behaviour_tree::Status Npc::PickRandomDestination() {
+  std::println("Picking random destination");
+  int rdm_x = (rand() % DataUtils::kTilemapWidth)*DataUtils::kTileSize;
+  int rdm_y = (rand() % DataUtils::kTilemapHeight)*DataUtils::kTileSize;
 
-  srand(time(NULL));
-  float rdm_x = (rand() % DataUtils::kTilemapWidth)*DataUtils::kTileSize;
-  float rdm_y = (rand() % DataUtils::kTilemapHeight)*DataUtils::kTileSize;
-
-  SetDestination({rdm_x,rdm_y});
+  ChangeDestination({rdm_x,rdm_y});
 
   return core::ai::behaviour_tree::Status::kSuccess;
 }
 
-core::ai::behaviour_tree::Status Npc::MoveToDestination() const {
-  return motor_.RemainingDistance() <= 0.001f ? core::ai::behaviour_tree::Status::kSuccess
-                                              : core::ai::behaviour_tree::Status::kRunning;
+core::ai::behaviour_tree::Status Npc::MoveToDestination() {
+  std::println("Moving to destination");
+  if (needPath) {
+    return core::ai::behaviour_tree::Status::kRunning;
+  }
+
+  if(motor_.RemainingDistance() <= 0.01f) {
+
+    if (!path_.empty()) {
+      path_.erase(path_.begin());
+    }
+
+    if (!path_.empty()) {
+      motor_.SetDestination({static_cast<float>(path_.front().x), static_cast<float>(path_.front().y)});
+      return core::ai::behaviour_tree::Status::kRunning;
+    } else {
+      return core::ai::behaviour_tree::Status::kSuccess;
+    }
+  }
+
+  return core::ai::behaviour_tree::Status::kRunning;
+}
+void Npc::ChangeDestination(sf::Vector2i newDestination) {
+  current_position_ = {static_cast<int>(motor_.GetPosition().x),static_cast<int>(motor_.GetPosition().y)};
+  destination_ = newDestination;
+  needPath = true;
+
 }
 
 }  // namespace api::ai

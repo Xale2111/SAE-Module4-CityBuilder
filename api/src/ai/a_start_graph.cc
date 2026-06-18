@@ -19,7 +19,7 @@ bool AStarGraph::ContainsNode(const sf::Vector2i node) const {
 }
 
 //TODO:give walkable tiles
-std::vector<sf::Vector2i> AStarGraph::GetPath(sf::Vector2i start, sf::Vector2i end, std::vector<sf::Vector2i>& walkable) {
+std::vector<sf::Vector2i> AStarGraph::GetPath(sf::Vector2i start, sf::Vector2i end, std::span<sf::Vector2i> walkable) {
   std::vector<sf::Vector2i> path;
   std::priority_queue<AStarVertex, std::vector<AStarVertex>, std::greater<>> open_queue;
   std::vector<AStarVertex> visited_vertices;
@@ -57,10 +57,9 @@ std::vector<sf::Vector2i> AStarGraph::GetPath(sf::Vector2i start, sf::Vector2i e
 
       sf::Vector2i new_position = node.position + (neighbour*DataUtils::kTileSize);
 
-      //TODO : Bug here on this line. visited is considered to be in the visited_vertices vector
       auto visited = std::ranges::find_if(visited_vertices, [&](AStarVertex v) { return v.position == new_position; });
 
-      if(visited != visited_vertices.end())
+      if(visited == visited_vertices.end() && std::ranges::find_if(walkable, [&](sf::Vector2i v) { return v == new_position; }) != walkable.end())
       {
         open_queue.push(AStarVertex(new_position, node.g+1 ,ManhattanDistance(new_position, end),visited_idx));
       }

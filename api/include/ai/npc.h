@@ -23,21 +23,27 @@
 
 namespace api::ai {
 
-// A "rough" NPC: a sprite that wanders the map, driven by a behaviour tree.
-// No pathfinding -- movement is handled by a simple linear Motor.
+
 class Npc {
  public:
-  void Setup(std::string_view sprite_path, sf::Vector2f start_position, std::vector<sf::Vector2i>& walkable);
+  void Setup(std::string_view sprite_path, sf::Vector2f start_position);
   void SetDestination(sf::Vector2f destination);
   void Update(float dt);
 //  void AstarPath(std::mdspan<int, std::extents<size_t,2>> tilemap, sf::Vector2f destination);
   void Draw(sf::RenderWindow& window);
   [[nodiscard]] core::ai::behaviour_tree::Status PickRandomDestination();
 
+  void set_path(std::vector<sf::Vector2i> newPath);
+  [[nodiscard]] sf::Vector2i const get_current_position(){return current_position_;} ;
+  [[nodiscard]] sf::Vector2i const get_destination(){return destination_;} ;
+
+  bool needPath = false;
+
 
  private:
   // Behaviour-tree actions (bound into the tree via lambdas in Setup()).
-  [[nodiscard]] core::ai::behaviour_tree::Status MoveToDestination() const;
+  [[nodiscard]] core::ai::behaviour_tree::Status MoveToDestination();
+  void ChangeDestination(sf::Vector2i newDestination);
 
   static constexpr float kSpeed = 500.f;
 
@@ -45,9 +51,9 @@ class Npc {
   std::optional<sf::Sprite> sprite_;
 
 
-  ai::AStarGraph graph_;
   std::vector<sf::Vector2i> path_;
-  std::vector<sf::Vector2i> walkable_;
+  sf::Vector2i current_position_;
+  sf::Vector2i destination_;
   motion::Motor motor_;
   std::unique_ptr<core::ai::behaviour_tree::Node> bt_root_;
 
