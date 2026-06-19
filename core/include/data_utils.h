@@ -30,6 +30,7 @@ enum class NpcType{
   kGatherer,
   kLumberjack,
   kMiner,
+  kNone
 };
 
 class DataUtils {
@@ -38,8 +39,8 @@ class DataUtils {
   static constexpr int kScreenHeight = 1080;
 
   //wanted size is 400x400
-  static constexpr int kTilemapWidth = 400;
-  static constexpr int kTilemapHeight = 400;
+  static constexpr int kTilemapWidth = 100;
+  static constexpr int kTilemapHeight = 100;
   static constexpr int kTileSize = 64;
 
 };

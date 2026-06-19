@@ -86,24 +86,24 @@ ActionCode LoopMenu() {
 ActionCode LoopGame() {
   Setup();
   build_menu_.Init();
-
+/*
   float delay = 0.05f;
   float time = 0.0f;
   int maxNpc = 1000;
-  int currentNpc = 0;
+  int currentNpc = 0;*/
 
   // Init the game loop
   while (window_.isOpen()) {
 
     auto dt = clock.restart().asSeconds();
 
-    time += dt;
+    /*time += dt;
     if (time > delay && currentNpc < maxNpc)
     {
       time = 0.0f;
       npc_manager_.SpawnNpc(NpcType::kMiner, {realMapWidth / 2.0f, realMapHeight / 2.0f});
       currentNpc++;
-    }
+    }*/
 
 
     //TODO : Optimize so this only play when hologram
@@ -136,6 +136,12 @@ ActionCode LoopGame() {
       if (build_menu_.get_current_building_() != DisplayableBuilding::kNone && can_place) {
         snapped = tilemap_.SnapToGridOrigin(mouse_world);
         tilemap_.AddBuilding(build_menu_.get_current_building_(), snapped);
+        //Spawn npc at building position
+        auto npcToSpawn = build_menu_.GetNpcTypeBasedOnBuilding();
+        if (npcToSpawn != NpcType::kNone)
+        {
+          npc_manager_.SpawnNpc(npcToSpawn, snapped);
+        }
       }
       build_menu_.try_to_place_building_ = false;
     }

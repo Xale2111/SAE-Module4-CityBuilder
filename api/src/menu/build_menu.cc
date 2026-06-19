@@ -49,11 +49,10 @@ void BuildMenu::HandleMenu(sf::RenderWindow &window, const std::optional<sf::Eve
   HandleCardsHover(window);
   HandleCardsInput(event);
 }
-void BuildMenu::HandleInput(const std::optional<sf::Event> &event)
-{
+void BuildMenu::HandleInput(const std::optional<sf::Event> &event) {
   toggle_menu_button_.HandleInput(event);
 
-  if(toggle_state_ && !hovering_menu_){
+  if (toggle_state_ && !hovering_menu_) {
     if (const auto *press = event->getIf<sf::Event::MouseButtonPressed>()) {
       if (press->button == sf::Mouse::Button::Left) {
         place_building_press_ = true;
@@ -70,7 +69,6 @@ void BuildMenu::HandleInput(const std::optional<sf::Event> &event)
   }
 
 }
-
 
 void BuildMenu::CheckOverBuildMenu(sf::RenderWindow &window) {
   if (toggle_state_) {
@@ -244,12 +242,11 @@ void BuildMenu::ChangeSelectedBuildingSprite(int spriteIndex) {
     current_selected_building_index_ = wanted_building_;
     current_display_building_sprite_ = sf::Sprite(buildings_texture_);
     current_display_building_sprite_->setTextureRect(sf::IntRect{{spriteIndex * 512, 0}, {512, 512}});
-    current_display_building_sprite_->setScale({512 / 512*kCurrentBuildingSpriteSize,
-                                                512 / 512*kCurrentBuildingSpriteSize });
+    current_display_building_sprite_->setScale({512 / 512 * kCurrentBuildingSpriteSize,
+                                                512 / 512 * kCurrentBuildingSpriteSize});
     current_display_building_sprite_->setColor({255, 255, 255, 180});
     current_display_building_sprite_->setOrigin({512 / 2, 512 / 2});
-  }
-  else{
+  } else {
     ResetSelectedBuilding();
   }
 }
@@ -265,6 +262,19 @@ void BuildMenu::ResetSelectedBuilding() {
   current_selected_building_index_ = DisplayableBuilding::kNone;
   current_display_building_sprite_.reset();
 }
-
+const NpcType BuildMenu::GetNpcTypeBasedOnBuilding() {
+  switch (current_selected_building_index_) {
+    case DisplayableBuilding::kFoodHouse:return NpcType::kGatherer;
+      break;
+    case DisplayableBuilding::kLumberjackHouse:return NpcType::kLumberjack;
+      break;
+    case DisplayableBuilding::kMineHouse:return NpcType::kMiner;
+      break;
+    case DisplayableBuilding::kCanteen:
+    case DisplayableBuilding::kNone:
+    default:break;
+  }
+  return NpcType::kNone;
+}
 
 }

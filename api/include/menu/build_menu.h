@@ -33,7 +33,7 @@ class BuildMenu {
   void ManageHologramColor(bool can_place_building);
   [[nodiscard]] bool const get_hover_build_menu(){return hovering_menu_;};
   [[nodiscard]] const DisplayableBuilding get_current_building_(){return current_selected_building_index_;};
-
+  [[nodiscard]] const NpcType GetNpcTypeBasedOnBuilding();
   void ResetMenu();
 
 

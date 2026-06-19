@@ -172,6 +172,8 @@ void Tilemap::AddBuilding(DisplayableBuilding building_to_place, sf::Vector2f bu
   int col = static_cast<int>(building_position.x / grid_offset_.x);
   int row = static_cast<int>(building_position.y / grid_offset_.y);
   tiles_[get_tile_id(col, row)].is_walkable = false;
+  walkables_.push_back({static_cast<int>(tiles_[get_tile_id(col, row)].position.x), static_cast<int>(tiles_[get_tile_id(col, row)].position.y)});
+
 }
 
 int Tilemap::get_sample_index(int sampleSize, int percent) const {
@@ -199,15 +201,4 @@ void Tilemap::AddResourcesTileBasedOnBiome(sf::Vector2f pos, sf::Vector2f gridOf
     }
   }
 }
-
-
-/*
-void Tilemap::DebugWalkable() {
-  for (int row = 0; row < total_rows_; ++row) {
-    for (int col = 0; col < total_cols_; col++) {
-      int index = get_tile_id(col, row);
-      std::println("Tile position : {},{}  |  index : {}", col, row, index);
-    }
-  }
-}*/
 
