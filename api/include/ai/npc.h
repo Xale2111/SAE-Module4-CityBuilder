@@ -26,7 +26,7 @@ namespace api::ai {
 
 class Npc {
  public:
-  void Setup(std::string_view sprite_path, sf::Vector2f start_position);
+  void Setup(const sf::Texture& shared_texture, sf::IntRect texture_rect, sf::Vector2f spawn_position);
   void SetDestination(sf::Vector2f destination);
   void Update(float dt);
 //  void AstarPath(std::mdspan<int, std::extents<size_t,2>> tilemap, sf::Vector2f destination);
@@ -45,9 +45,8 @@ class Npc {
   [[nodiscard]] core::ai::behaviour_tree::Status MoveToDestination();
   void ChangeDestination(sf::Vector2i newDestination);
 
-  static constexpr float kSpeed = 500.f;
+  static constexpr float kSpeed = 200.f;
 
-  std::unique_ptr<sf::Texture> texture_ = std::make_unique<sf::Texture>();
   std::optional<sf::Sprite> sprite_;
 
 

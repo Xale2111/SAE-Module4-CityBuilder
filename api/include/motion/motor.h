@@ -2,6 +2,8 @@
 #define API_MOTION_MOTOR_H
 
 #include <SFML/System/Vector2.hpp>
+#include <print>
+#include <string>
 
 namespace api::motion {
 
@@ -38,6 +40,7 @@ inline void Motor::Update(const float dt) {
 
   if (remainingDistance_ < speed_ * dt) {
     position_ = destination_;
+
     remainingDistance_ = 0.f;
     return;
   }

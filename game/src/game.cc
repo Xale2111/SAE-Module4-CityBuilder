@@ -23,6 +23,10 @@ camera::Camera camera_;
 
 api::ai::NpcManager npc_manager_;
 
+
+constexpr float realMapWidth = DataUtils::kTilemapWidth * DataUtils::kTileSize;
+constexpr float realMapHeight = DataUtils::kTilemapHeight * DataUtils::kTileSize;
+
 }
 
 void Setup() {
@@ -38,13 +42,16 @@ void Setup() {
   srand(time(0));
 
   tilemap_.Setup();
-  float realMapWidth = DataUtils::kTilemapWidth * DataUtils::kTileSize;
-  float realMapHeight = DataUtils::kTilemapHeight * DataUtils::kTileSize;
 
-  camera_.SetupView({DataUtils::kScreenWidth, DataUtils::kScreenHeight},
-                    {realMapWidth / 2.0f, realMapHeight / 2.0f});
+  camera_.SetupView({DataUtils::kScreenWidth, DataUtils::kScreenHeight}, {realMapWidth / 2.0f, realMapHeight / 2.0f});
 
-  npc_manager_.SpawnNpc("_assets/tempPNJ.png",{realMapWidth / 2.0f, realMapHeight / 2.0f});
+
+
+  //npc_manager_.SpawnNpc(NpcType::kGatherer,{realMapWidth / 2.0f, realMapHeight / 2.0f});
+  //npc_manager_.SpawnNpc(NpcType::kLumberjack,{realMapWidth / 2.0f, realMapHeight / 2.0f});
+
+
+
 }
 
 ActionCode LoopMenu() {
@@ -80,11 +87,24 @@ ActionCode LoopGame() {
   Setup();
   build_menu_.Init();
 
+  float delay = 0.05f;
+  float time = 0.0f;
+  int maxNpc = 1000;
+  int currentNpc = 0;
 
   // Init the game loop
   while (window_.isOpen()) {
 
     auto dt = clock.restart().asSeconds();
+
+    time += dt;
+    if (time > delay && currentNpc < maxNpc)
+    {
+      time = 0.0f;
+      npc_manager_.SpawnNpc(NpcType::kMiner, {realMapWidth / 2.0f, realMapHeight / 2.0f});
+      currentNpc++;
+    }
+
 
     //TODO : Optimize so this only play when hologram
     sf::Vector2f mouse_world = window_.mapPixelToCoords(

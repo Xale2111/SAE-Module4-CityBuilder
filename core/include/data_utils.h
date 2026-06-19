@@ -26,14 +26,20 @@ enum class DisplayableBuilding : uint8_t {
   kNone
 };
 
+enum class NpcType{
+  kGatherer,
+  kLumberjack,
+  kMiner,
+};
+
 class DataUtils {
  public :
   static constexpr int kScreenWidth = 1920;
   static constexpr int kScreenHeight = 1080;
 
   //wanted size is 400x400
-  static constexpr int kTilemapWidth = 10;
-  static constexpr int kTilemapHeight = 10;
+  static constexpr int kTilemapWidth = 400;
+  static constexpr int kTilemapHeight = 400;
   static constexpr int kTileSize = 64;
 
 };

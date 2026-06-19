@@ -10,20 +10,22 @@
 #include <vector>
 #include <span>
 #include "npc.h"
+#include "data_utils.h"
+
 
 namespace api::ai {
 
 class NpcManager {
  public:
-
-  void SpawnNpc(std::string_view sprite_path, sf::Vector2f spawn_position);
+  NpcManager();
+  void SpawnNpc(NpcType type, sf::Vector2f spawn_position);
   void Update(float dt);
   void UpdatePath(std::span<sf::Vector2i> walkables);
   void Draw(sf::RenderWindow& window);
 
  private:
-  std::vector<Npc> npcs_;
-
+  sf::Texture npc_textures_;
+  std::vector<std::unique_ptr<Npc>> npcs_;
 
   AStarGraph graph_;
   std::vector<sf::Vector2f>  open_list_;
