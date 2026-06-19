@@ -31,7 +31,6 @@ class Npc {
   void Update(float dt);
 //  void AstarPath(std::mdspan<int, std::extents<size_t,2>> tilemap, sf::Vector2f destination);
   void Draw(sf::RenderWindow& window);
-  [[nodiscard]] core::ai::behaviour_tree::Status PickRandomDestination();
 
   void set_path(std::vector<sf::Vector2i> newPath);
   [[nodiscard]] sf::Vector2i const get_current_position(){return current_position_;} ;
@@ -43,6 +42,9 @@ class Npc {
  private:
   // Behaviour-tree actions (bound into the tree via lambdas in Setup()).
   [[nodiscard]] core::ai::behaviour_tree::Status MoveToDestination();
+  [[nodiscard]] core::ai::behaviour_tree::Status PickRandomDestination();
+  [[nodiscard]] core::ai::behaviour_tree::Status GoBackHome();
+
   void ChangeDestination(sf::Vector2i newDestination);
 
   static constexpr float kSpeed = 200.f;
@@ -51,6 +53,7 @@ class Npc {
 
 
   std::vector<sf::Vector2i> path_;
+  sf::Vector2i house_position_;
   sf::Vector2i current_position_;
   sf::Vector2i destination_;
   motion::Motor motor_;

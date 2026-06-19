@@ -35,12 +35,17 @@ void Npc::Setup(const sf::Texture& shared_texture, sf::IntRect texture_rect, sf:
   current_position_ = {static_cast<int>(spawn_position.x),static_cast<int>(spawn_position.y)};
   destination_ = {static_cast<int>(spawn_position.x),static_cast<int>(spawn_position.y)};
 
+  house_position_ = {static_cast<int>(spawn_position.x),static_cast<int>(spawn_position.y)};
+
   using namespace core::ai::behaviour_tree;
 
 
   std::unique_ptr<SequenceNode> wanderSequence = MakeSequence();
   wanderSequence->AddChild(MakeAction([this] { return PickRandomDestination(); }));
   wanderSequence->AddChild(MakeAction([this] { return MoveToDestination(); }));
+  wanderSequence->AddChild(MakeAction([this] { return GoBackHome(); }));
+  wanderSequence->AddChild(MakeAction([this] { return MoveToDestination(); }));
+
 
 
   bt_root_ = std::move(wanderSequence);
@@ -80,14 +85,12 @@ void Npc::set_path(std::vector<sf::Vector2i> newPath){
   }
 }
 
-core::ai::behaviour_tree::Status Npc::PickRandomDestination() {
-  int rdm_x = (rand() % DataUtils::kTilemapWidth)*DataUtils::kTileSize;
-  int rdm_y = (rand() % DataUtils::kTilemapHeight)*DataUtils::kTileSize;
-  std::println("Picking random destination : {};{}" , rdm_x, rdm_y);
+void Npc::ChangeDestination(sf::Vector2i newDestination) {
+  current_position_ = {static_cast<int>(motor_.GetPosition().x),static_cast<int>(motor_.GetPosition().y)};
+  destination_ = newDestination;
+  needPath = true;
 
-  ChangeDestination({rdm_x,rdm_y});
 
-  return core::ai::behaviour_tree::Status::kSuccess;
 }
 
 core::ai::behaviour_tree::Status Npc::MoveToDestination() {
@@ -112,12 +115,22 @@ core::ai::behaviour_tree::Status Npc::MoveToDestination() {
 
   return core::ai::behaviour_tree::Status::kRunning;
 }
-void Npc::ChangeDestination(sf::Vector2i newDestination) {
-  current_position_ = {static_cast<int>(motor_.GetPosition().x),static_cast<int>(motor_.GetPosition().y)};
-  destination_ = newDestination;
-  needPath = true;
 
+core::ai::behaviour_tree::Status Npc::PickRandomDestination() {
+  int rdm_x = (rand() % DataUtils::kTilemapWidth)*DataUtils::kTileSize;
+  int rdm_y = (rand() % DataUtils::kTilemapHeight)*DataUtils::kTileSize;
+  std::println("Picking random destination : {};{}" , rdm_x, rdm_y);
 
+  ChangeDestination({rdm_x,rdm_y});
+
+  return core::ai::behaviour_tree::Status::kSuccess;
+}
+
+core::ai::behaviour_tree::Status Npc::GoBackHome() {
+
+  ChangeDestination(house_position_);
+
+  return core::ai::behaviour_tree::Status::kSuccess;
 }
 
 }  // namespace api::ai
