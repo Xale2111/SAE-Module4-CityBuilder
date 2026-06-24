@@ -10,6 +10,7 @@
 namespace menu {
 
 void Button::HandleInput(const std::optional<sf::Event> &event) {
+  if(!event) return;
   if (is_mouse_hover_) {
     if (const auto *mouse = event->getIf<sf::Event::MouseButtonPressed>()) {
       is_pressed_ = true;

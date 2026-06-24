@@ -14,8 +14,8 @@
 /// </summary>
 class CustomEvent {
  public:
-  void operator+=(std::function<void()> callback) {
-    callbacks_.push_back(callback);
+  void Append(std::function<void()> callback) {
+    callbacks_.push_back(std::move(callback));
   }
   void Clear()
   {

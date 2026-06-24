@@ -99,6 +99,7 @@ void BuildingCardUI::CheckHover(sf::Vector2f mousePosition) {
 }
 
 void BuildingCardUI::HandleInput(const std::optional<sf::Event> &event) {
+  if(!event) return;
   if (is_mouse_hover_) {
     if (const auto *press = event->getIf<sf::Event::MouseButtonPressed>()) {
       if (press->button == sf::Mouse::Button::Left) {

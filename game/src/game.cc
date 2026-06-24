@@ -9,6 +9,7 @@
 #include "menu/build_menu.h"
 #include "ai/npc.h"
 #include "ai/npc_manager.h"
+#include <tracy/Tracy.hpp>
 
 namespace game {
 
@@ -86,24 +87,24 @@ ActionCode LoopMenu() {
 ActionCode LoopGame() {
   Setup();
   build_menu_.Init();
-/*
-  float delay = 0.05f;
+
+  float delay = 0.f;
   float time = 0.0f;
-  int maxNpc = 1000;
-  int currentNpc = 0;*/
+  int maxNpc = 80;
+  int currentNpc = 0;
 
   // Init the game loop
   while (window_.isOpen()) {
 
     auto dt = clock.restart().asSeconds();
 
-    /*time += dt;
-    if (time > delay && currentNpc < maxNpc)
+    time += dt;
+    if (time >= delay && currentNpc < maxNpc)
     {
       time = 0.0f;
       npc_manager_.SpawnNpc(NpcType::kMiner, {realMapWidth / 2.0f, realMapHeight / 2.0f});
       currentNpc++;
-    }*/
+    }
 
 
     //TODO : Optimize so this only play when hologram
@@ -162,6 +163,8 @@ ActionCode LoopGame() {
     build_menu_.Draw(window_);
     window_.display();
   }
+
+  FrameMark;
 
   return ActionCode::kMenu;
 }

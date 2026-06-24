@@ -58,6 +58,8 @@ class AStarGraph
 
   std::unordered_set<sf::Vector2i, Vec2iHash> graph_;
 
+  [[nodiscard]] int CalculateIndex(int x, int y) const;
+
 };
 constexpr std::array<sf::Vector2i,4> kNeighbours{
     sf::Vector2i(0,-1), //NORTH

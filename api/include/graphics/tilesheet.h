@@ -24,10 +24,8 @@ class TileSheet {
   }
 
   [[nodiscard]] sf::FloatRect GetBounds(T type) {
-    if (tile_rects.contains(type)) {
-      return tile_rects.at(type);
-    }
-    return {};
+    auto it = tile_rects.find(type);
+    return it != tile_rects.end() ? it->second : sf::FloatRect{};
   }
 
   [[nodiscard]] sf::Texture *GetTexture() { return &texture; };

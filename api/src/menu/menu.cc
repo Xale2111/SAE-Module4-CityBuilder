@@ -38,6 +38,7 @@ void Menu::HandleButtonsStates(sf::RenderWindow &window) {
 }
 
 ActionCode Menu::HandleInput(const std::optional<sf::Event> &event) {
+
   start_button_.HandleInput(event);
   quit_button_.HandleInput(event);
 

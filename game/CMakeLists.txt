@@ -11,3 +11,5 @@ add_library(game ${SRC_FILES} ${HEADER_FILES})
 target_include_directories(game PUBLIC include/)
 target_link_libraries(game PUBLIC api)
 target_link_libraries(game PUBLIC SFML::System SFML::Graphics SFML::Window SFML::Audio)
+
+target_link_libraries(game PRIVATE TracyClient)

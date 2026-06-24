@@ -54,6 +54,7 @@ sf::View &Camera::GetView() {
 }
 
 void Camera::HandleMouse(const std::optional<sf::Event> &event, sf::RenderWindow &window) {
+  if(!event) return;
   if (const auto *scroll = event->getIf<sf::Event::MouseWheelScrolled>()) {
     float delta = scroll->delta;
 

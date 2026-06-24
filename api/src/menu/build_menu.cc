@@ -50,6 +50,8 @@ void BuildMenu::HandleMenu(sf::RenderWindow &window, const std::optional<sf::Eve
   HandleCardsInput(event);
 }
 void BuildMenu::HandleInput(const std::optional<sf::Event> &event) {
+  if(!event) return;
+
   toggle_menu_button_.HandleInput(event);
 
   if (toggle_state_ && !hovering_menu_) {
@@ -139,9 +141,9 @@ void BuildMenu::SetupToggleButton() {
   toggle_menu_button_.set_pressed_color({36, 33, 24});
   toggle_menu_button_.ResetPressState();
 
-  toggle_menu_button_.event_on_press_ += [this]() {
+  toggle_menu_button_.event_on_press_.Append([this]() {
     toggle_state_ = !toggle_state_;
-  };
+  });
 }
 
 void BuildMenu::SetupBuildingCards() {
@@ -200,24 +202,22 @@ void BuildMenu::SetupCardsFont() {
 }
 
 void BuildMenu::SetupCardsPressEvent() {
-  bcui_lumberjack_.event_on_press_ += [this]() {
+  bcui_lumberjack_.event_on_press_.Append([this]() {
     std::println("Lumberjack pressed");
     ChangeSelectedBuildingSprite(bcui_lumberjack_.get_texture_index());
-  };
-  bcui_food_picker_.event_on_press_ += [this]() {
+  });
+  bcui_food_picker_.event_on_press_.Append([this]() {
     std::println("Food picker pressed");
     ChangeSelectedBuildingSprite(bcui_food_picker_.get_texture_index());
-
-  };
-  bcui_mine_.event_on_press_ += [this]() {
+  });
+  bcui_mine_.event_on_press_.Append([this]() {
     std::printf("Mine pressed");
     ChangeSelectedBuildingSprite(bcui_mine_.get_texture_index());
-
-  };
-  bcui_canteen_.event_on_press_ += [this]() {
+  });
+  bcui_canteen_.event_on_press_.Append([this]() {
     std::printf("Canteen pressed");
     ChangeSelectedBuildingSprite(bcui_canteen_.get_texture_index());
-  };
+  });
 }
 
 void BuildMenu::HandleCardsHover(sf::RenderWindow &window) {

@@ -27,7 +27,6 @@ namespace api::ai {
 class Npc {
  public:
   void Setup(const sf::Texture& shared_texture, sf::IntRect texture_rect, sf::Vector2f spawn_position);
-  void SetDestination(sf::Vector2f destination);
   void Update(float dt);
 //  void AstarPath(std::mdspan<int, std::extents<size_t,2>> tilemap, sf::Vector2f destination);
   void Draw(sf::RenderWindow& window);
@@ -58,6 +57,8 @@ class Npc {
   sf::Vector2i destination_;
   motion::Motor motor_;
   std::unique_ptr<core::ai::behaviour_tree::Node> bt_root_;
+  int current_path_index_;
+
 
 };
 

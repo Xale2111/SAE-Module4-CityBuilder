@@ -12,7 +12,7 @@
 namespace api::ai {
 
 // Dans Npc.h
-void Npc::Setup(const sf::Texture& shared_texture, sf::IntRect texture_rect, sf::Vector2f spawn_position) {
+void Npc::Setup(const sf::Texture &shared_texture, sf::IntRect texture_rect, sf::Vector2f spawn_position) {
 
   sprite_.emplace(shared_texture);
   sprite_->setTextureRect(texture_rect);
@@ -23,30 +23,24 @@ void Npc::Setup(const sf::Texture& shared_texture, sf::IntRect texture_rect, sf:
   float scale_y = static_cast<float>(DataUtils::kTileSize / 2) / static_cast<float>(texture_rect.size.y);
   sprite_->setScale({scale_x, scale_y});
 
-
-
   srand(time(NULL));
 
   motor_.SetPosition(spawn_position);
   motor_.SetDestination(spawn_position);  // stay put until the first pick
   motor_.SetSpeed(kSpeed);
 
+  current_position_ = {static_cast<int>(spawn_position.x), static_cast<int>(spawn_position.y)};
+  destination_ = {static_cast<int>(spawn_position.x), static_cast<int>(spawn_position.y)};
 
-  current_position_ = {static_cast<int>(spawn_position.x),static_cast<int>(spawn_position.y)};
-  destination_ = {static_cast<int>(spawn_position.x),static_cast<int>(spawn_position.y)};
-
-  house_position_ = {static_cast<int>(spawn_position.x),static_cast<int>(spawn_position.y)};
+  house_position_ = {static_cast<int>(spawn_position.x), static_cast<int>(spawn_position.y)};
 
   using namespace core::ai::behaviour_tree;
-
 
   std::unique_ptr<SequenceNode> wanderSequence = MakeSequence();
   wanderSequence->AddChild(MakeAction([this] { return PickRandomDestination(); }));
   wanderSequence->AddChild(MakeAction([this] { return MoveToDestination(); }));
   wanderSequence->AddChild(MakeAction([this] { return GoBackHome(); }));
   wanderSequence->AddChild(MakeAction([this] { return MoveToDestination(); }));
-
-
 
   bt_root_ = std::move(wanderSequence);
 
@@ -65,31 +59,32 @@ void Npc::Update(const float dt) {
 }
 
 void Npc::Draw(sf::RenderWindow &window) {
+  //TODO : Draw npc with vertex instead of sprite
   if (sprite_.has_value()) {
-    sprite_->setPosition({motor_.GetPosition().x + DataUtils::kTileSize / 2,motor_.GetPosition().y +DataUtils::kTileSize / 2});
+    sprite_->setPosition({motor_.GetPosition().x + DataUtils::kTileSize / 2,
+                          motor_.GetPosition().y + DataUtils::kTileSize / 2});
     //sprite_->setPosition(motor_.GetPosition());
     window.draw(*sprite_);
   }
 }
 
-void Npc::set_path(std::vector<sf::Vector2i> newPath){
+void Npc::set_path(std::vector<sf::Vector2i> newPath) {
   path_ = std::move(newPath);
 
-  if(!path_.empty())
-  {
-    motor_.SetDestination({static_cast<float>(path_.front().x),static_cast<float>(path_.front().y)});
-  }
-  else
-  {
+  current_path_index_ = 0;
+
+  if (!path_.empty()) {
+    motor_.SetDestination({static_cast<float>(path_[current_path_index_].x),
+                           static_cast<float>(path_[current_path_index_].y)});
+  } else {
     motor_.SetDestination(motor_.GetPosition());
   }
 }
 
 void Npc::ChangeDestination(sf::Vector2i newDestination) {
-  current_position_ = {static_cast<int>(motor_.GetPosition().x),static_cast<int>(motor_.GetPosition().y)};
+  current_position_ = {static_cast<int>(motor_.GetPosition().x), static_cast<int>(motor_.GetPosition().y)};
   destination_ = newDestination;
   needPath = true;
-
 
 }
 
@@ -99,14 +94,17 @@ core::ai::behaviour_tree::Status Npc::MoveToDestination() {
     return core::ai::behaviour_tree::Status::kRunning;
   }
 
-  if(motor_.RemainingDistance() <= 0.01f) {
+  if (path_.empty()) {
+    return core::ai::behaviour_tree::Status::kSuccess;
+  }
 
-    if (!path_.empty()) {
-      path_.erase(path_.begin());
-    }
+  if (motor_.RemainingDistance() <= 0.01f) {
 
-    if (!path_.empty()) {
-      motor_.SetDestination({static_cast<float>(path_.front().x), static_cast<float>(path_.front().y)});
+    current_path_index_++;
+
+    if (current_path_index_ < path_.size()) {
+      motor_.SetDestination({static_cast<float>(path_[current_path_index_].x),
+                             static_cast<float>(path_[current_path_index_].y)});
       return core::ai::behaviour_tree::Status::kRunning;
     } else {
       return core::ai::behaviour_tree::Status::kSuccess;
@@ -117,11 +115,11 @@ core::ai::behaviour_tree::Status Npc::MoveToDestination() {
 }
 
 core::ai::behaviour_tree::Status Npc::PickRandomDestination() {
-  int rdm_x = (rand() % DataUtils::kTilemapWidth)*DataUtils::kTileSize;
-  int rdm_y = (rand() % DataUtils::kTilemapHeight)*DataUtils::kTileSize;
-  std::println("Picking random destination : {};{}" , rdm_x, rdm_y);
+  int rdm_x = (rand() % DataUtils::kTilemapWidth) * DataUtils::kTileSize;
+  int rdm_y = (rand() % DataUtils::kTilemapHeight) * DataUtils::kTileSize;
+  std::println("Picking random destination : {};{}", rdm_x, rdm_y);
 
-  ChangeDestination({rdm_x,rdm_y});
+  ChangeDestination({rdm_x, rdm_y});
 
   return core::ai::behaviour_tree::Status::kSuccess;
 }
@@ -132,5 +130,4 @@ core::ai::behaviour_tree::Status Npc::GoBackHome() {
 
   return core::ai::behaviour_tree::Status::kSuccess;
 }
-
 }  // namespace api::ai

@@ -11,3 +11,5 @@ add_library(api ${SRC_FILES} ${HEADER_FILES})
 target_include_directories(api PUBLIC include/)
 target_link_libraries(api PUBLIC SFML::System SFML::Graphics SFML::Window SFML::Audio)
 target_link_libraries(api PUBLIC core)
+
+target_link_libraries(api PRIVATE TracyClient)
