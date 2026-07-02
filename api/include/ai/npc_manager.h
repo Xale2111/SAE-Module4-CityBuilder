@@ -20,12 +20,14 @@ class NpcManager {
   NpcManager();
   void SpawnNpc(NpcType type, sf::Vector2f spawn_position);
   void Update(float dt);
-  void UpdatePath(std::span<sf::Vector2i> walkables);
+  void UpdatePath(std::span<sf::Vector2i> walkables,std::span<resource::Resource> resourceMap);
   void Draw(sf::RenderWindow& window);
 
  private:
   sf::Texture npc_textures_;
   std::vector<std::unique_ptr<Npc>> npcs_;
+  std::vector<uint8_t> walkable_tiles_cache_;
+  std::vector<uint8_t> visited_tiles_cache_;
 
   AStarGraph graph_;
   std::vector<sf::Vector2f>  open_list_;

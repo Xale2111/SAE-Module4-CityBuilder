@@ -1,7 +1,4 @@
 #include <game.h>
-#include "menu/menu.h"
-
-#include <queue>
 
 int main() {
 

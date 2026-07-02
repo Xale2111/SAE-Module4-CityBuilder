@@ -7,7 +7,6 @@
 #include "menu/menu.h"
 #include "camera/camera.h"
 #include "menu/build_menu.h"
-#include "ai/npc.h"
 #include "ai/npc_manager.h"
 #include "resource/resource_manager.h"
 #include <tracy/Tracy.hpp>

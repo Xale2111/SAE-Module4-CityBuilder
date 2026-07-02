@@ -19,23 +19,21 @@ bool AStarGraph::ContainsNode(const sf::Vector2i node) const {
   return graph_.contains(node);
 }
 
-std::vector<sf::Vector2i> AStarGraph::GetPath(sf::Vector2i start, sf::Vector2i end, std::span<sf::Vector2i> walkable) {
+std::vector<sf::Vector2i> AStarGraph::GetPath(sf::Vector2i start, sf::Vector2i end, std::span<sf::Vector2i> walkable, std::vector<uint8_t>& cache_walkables, std::vector<uint8_t>& cache_visited) {
   ZoneScopedNC("AStarGraph::GetPath", tracy::Color::Green);
   std::vector<sf::Vector2i> path;
 
-  std::vector<uint8_t> walkable_tiles(DataUtils::kTilemapWidth * DataUtils::kTilemapHeight);
-  std::fill(walkable_tiles.begin(), walkable_tiles.end(), false);
+  std::fill(cache_walkables.begin(), cache_walkables.end(), false);
 
   for (const auto &pixel_pos : walkable) {
     int tx = pixel_pos.x / DataUtils::kTileSize;
     int ty = pixel_pos.y / DataUtils::kTileSize;
     if (tx >= 0 && tx < DataUtils::kTilemapWidth && ty >= 0 && ty < DataUtils::kTilemapHeight) {
-      walkable_tiles[CalculateIndex(tx,ty)] = true;
+      cache_walkables[CalculateIndex(tx,ty)] = true;
     }
   }
 
-  std::vector<uint8_t> visited_tiles(DataUtils::kTilemapWidth * DataUtils::kTilemapHeight);
-  std::fill(visited_tiles.begin(), visited_tiles.end(), false);
+  std::fill(cache_visited.begin(), cache_visited.end(), false);
 
 
   int start_tx = start.x / DataUtils::kTileSize;
@@ -48,7 +46,7 @@ std::vector<sf::Vector2i> AStarGraph::GetPath(sf::Vector2i start, sf::Vector2i e
     return path;
   }
 
-  if (!walkable_tiles[CalculateIndex(start_tx,start_ty)] || !walkable_tiles[CalculateIndex(end_tx,end_ty)]) {
+  if (!cache_walkables[CalculateIndex(start_tx,start_ty)]) {
     return path;
   }
 
@@ -64,18 +62,24 @@ std::vector<sf::Vector2i> AStarGraph::GetPath(sf::Vector2i start, sf::Vector2i e
     int node_tx = node.position.x / DataUtils::kTileSize;
     int node_ty = node.position.y / DataUtils::kTileSize;
 
-    if (visited_tiles[CalculateIndex(node_tx,node_ty)]) continue;
+    if (cache_visited[CalculateIndex(node_tx,node_ty)]) continue;
 
-    visited_tiles[CalculateIndex(node_tx,node_ty)] = true;
+    cache_visited[CalculateIndex(node_tx,node_ty)] = true;
     visited_vertices.push_back(node);
     int visited_idx = visited_vertices.size() - 1;
 
+    //TODO : FIX issue -> if the end is house, needs to walk on the house before hiding npc (so depending on what's the end, wither end or end-1)
     if (node.position == end) {
-      auto pathVertex = node;
-      while (pathVertex.parent_idx > -1) {
-        path.push_back(pathVertex.position);
-        pathVertex = visited_vertices[pathVertex.parent_idx];
+      if (node.parent_idx == -1) {
+        return path;
       }
+      int current_parent = node.parent_idx;
+
+      while (current_parent >= 0 && current_parent < static_cast<int>(visited_vertices.size())) {
+        path.push_back(visited_vertices[current_parent].position);
+        current_parent = visited_vertices[current_parent].parent_idx;
+      }
+
       std::ranges::reverse(path);
       return path;
     }
@@ -89,7 +93,9 @@ std::vector<sf::Vector2i> AStarGraph::GetPath(sf::Vector2i start, sf::Vector2i e
         continue;
       }
 
-      if (!visited_tiles[CalculateIndex(n_tx,n_ty)] && walkable_tiles[CalculateIndex(n_tx,n_ty)]) {
+      //TODO : FIX issue -> I removed the check for walkable tiles, so npc can walk on non-walkables (which can cause issue like starting on a non-walkable tile afterwards).
+      // I need to check if walkable or not but if it's the resource destination, it will be non-walkable. (shitty idea, change walkable to true of the resource ?)
+      if (!cache_visited[CalculateIndex(n_tx,n_ty)]) {
         open_queue.push(AStarVertex(new_position,
                                     node.g + DataUtils::kTileSize,
                                     ManhattanDistance(new_position, end),

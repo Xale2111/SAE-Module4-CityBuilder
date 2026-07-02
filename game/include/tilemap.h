@@ -30,8 +30,6 @@ class Tilemap {
   void Draw(sf::RenderWindow &window);
   void AddBuilding(DisplayableBuilding building_to_place, sf::Vector2f building_position);
 
-  [[nodiscard]] graphics::Tile &get_tile(int id) { return tiles_[id]; }
-  [[nodiscard]] std::vector<graphics::Tile> &get_tiles(int id) { return tiles_; }
   [[nodiscard]] std::vector<sf::Vector2i> &get_walkables() { return walkables_; }
   [[nodiscard]] int get_tile_id(int col, int row) const { return row * total_cols_ + col; }
 

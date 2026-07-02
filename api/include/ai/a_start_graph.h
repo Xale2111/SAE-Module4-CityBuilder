@@ -47,7 +47,7 @@ struct AStarVertexHash{
 class AStarGraph
 {
  public:
-  [[nodiscard]] std::vector<sf::Vector2i> GetPath(sf::Vector2i start, sf::Vector2i end, std::span<sf::Vector2i> walkable);
+  [[nodiscard]] std::vector<sf::Vector2i> GetPath(sf::Vector2i start, sf::Vector2i end, std::span<sf::Vector2i> walkable, std::vector<uint8_t>& cache_walkables, std::vector<uint8_t>& cache_visited);
  private:
 
   void AddNode(sf::Vector2i node);

@@ -46,8 +46,7 @@ enum class PathRequest {
   kHome
 };
 
-class DataUtils {
- public :
+struct DataUtils {
   static constexpr int kScreenWidth = 1920;
   static constexpr int kScreenHeight = 1080;
 
