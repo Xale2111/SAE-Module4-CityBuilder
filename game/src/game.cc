@@ -9,6 +9,7 @@
 #include "menu/build_menu.h"
 #include "ai/npc.h"
 #include "ai/npc_manager.h"
+#include "resource/resource_manager.h"
 #include <tracy/Tracy.hpp>
 
 namespace game {
@@ -21,8 +22,10 @@ Tilemap tilemap_;
 menu::Menu mainMenu_;
 menu::BuildMenu build_menu_;
 camera::Camera camera_;
+resource::ResourceManager resource_manager_;
 
 api::ai::NpcManager npc_manager_;
+
 
 
 constexpr float realMapWidth = DataUtils::kTilemapWidth * DataUtils::kTileSize;
@@ -42,11 +45,9 @@ void Setup() {
 
   srand(time(0));
 
-  tilemap_.Setup();
+  tilemap_.Setup(resource_manager_);
 
   camera_.SetupView({DataUtils::kScreenWidth, DataUtils::kScreenHeight}, {realMapWidth / 2.0f, realMapHeight / 2.0f});
-
-
 
   //npc_manager_.SpawnNpc(NpcType::kGatherer,{realMapWidth / 2.0f, realMapHeight / 2.0f});
   //npc_manager_.SpawnNpc(NpcType::kLumberjack,{realMapWidth / 2.0f, realMapHeight / 2.0f});
@@ -98,13 +99,13 @@ ActionCode LoopGame() {
 
     auto dt = clock.restart().asSeconds();
 
-    time += dt;
+    /*time += dt;
     if (time >= delay && currentNpc < maxNpc)
     {
       time = 0.0f;
       npc_manager_.SpawnNpc(NpcType::kMiner, {realMapWidth / 2.0f, realMapHeight / 2.0f});
       currentNpc++;
-    }
+    }*/
 
 
     //TODO : Optimize so this only play when hologram
@@ -147,8 +148,9 @@ ActionCode LoopGame() {
       build_menu_.try_to_place_building_ = false;
     }
 
-    npc_manager_.UpdatePath(tilemap_.get_walkables());
+    npc_manager_.UpdatePath(tilemap_.get_walkables(), resource_manager_.get_resources());
     npc_manager_.Update(dt);
+    resource_manager_.Update();
 
     // Graphic frame
     window_.clear();

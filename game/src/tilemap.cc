@@ -6,14 +6,17 @@
 #include "tilemap.h"
 #include "data_utils.h"
 #include <print>
+#include <tracy/Tracy.hpp>
 
 std::random_device r;
 std::default_random_engine rng_(r());
 
-void Tilemap::Setup(int seed){
+void Tilemap::Setup(resource::ResourceManager &rscManager, int seed) {
 
-  tiles_.resize(total_cols_*total_rows_);
-  walkables_.reserve(total_cols_*total_rows_);
+  tiles_.resize(total_cols_ * total_rows_);
+  walkables_.reserve(total_cols_ * total_rows_);
+
+  resource_manager_ = &rscManager;
 
   InitTiles();
 
@@ -38,12 +41,17 @@ void Tilemap::Setup(int seed){
     constexpr int stonePercent = 23 + woodPercent;
     constexpr int foodPercent = 17 + stonePercent;
 
+    ZoneScopedNC("Biome", tracy::Color::Cyan);
+
     std::vector<float> samples;
     samples.reserve(total_cols_ * total_rows_);
 
     for (int col = 0; col < total_cols_; col++)
       for (int row = 0; row < total_rows_; row++)
         samples.push_back((noiseBiome.GetNoise(col * grid_offset_.x, row * grid_offset_.y) + 1.0f) * 0.5f);
+
+    //TODO : Try with nth_element instead of sort
+    //auto it1 = std::nth_element(samples.begin(), samples.begin() +woodPercent, samples.end());
 
     std::sort(samples.begin(), samples.end());
     int n = static_cast<int>(samples.size());
@@ -74,9 +82,8 @@ void Tilemap::Setup(int seed){
       }
     }
 
-    for(auto& tile : tiles_){
-      if(tile.is_walkable)
-      {
+    for (auto &tile : tiles_) {
+      if (tile.is_walkable) {
         walkables_.push_back({static_cast<int>(tile.position.x), static_cast<int>(tile.position.y)});
       }
     }
@@ -134,6 +141,8 @@ void Tilemap::InitTiles() {
       int id = get_tile_id(col, row);
       tiles_[id].position = {col * grid_offset_.x, row * grid_offset_.y};
       tiles_[id].is_walkable = true;
+      resource_manager_->AddResource({col * DataUtils::kTileSize, row * DataUtils::kTileSize}, ResourcesType::kNone);
+
     }
   }
 }
@@ -172,7 +181,8 @@ void Tilemap::AddBuilding(DisplayableBuilding building_to_place, sf::Vector2f bu
   int col = static_cast<int>(building_position.x / grid_offset_.x);
   int row = static_cast<int>(building_position.y / grid_offset_.y);
   tiles_[get_tile_id(col, row)].is_walkable = false;
-  walkables_.push_back({static_cast<int>(tiles_[get_tile_id(col, row)].position.x), static_cast<int>(tiles_[get_tile_id(col, row)].position.y)});
+  walkables_.push_back({static_cast<int>(tiles_[get_tile_id(col, row)].position.x),
+                        static_cast<int>(tiles_[get_tile_id(col, row)].position.y)});
 
 }
 
@@ -190,12 +200,16 @@ void Tilemap::AddResourcesTileBasedOnBiome(sf::Vector2f pos, sf::Vector2f gridOf
   for (int i = 1; i < 4; i++) {
     cumulative += biome.percentages[i];
     if (randomNumber < cumulative) {
-      resources_renderer_.AddTile(pos, gridOffset, resources_tile_sheet_.GetBounds(static_cast<ResourcesType>(i - 1)));
+
+      ResourcesType type = static_cast<ResourcesType>(i - 1);
+
+      resources_renderer_.AddTile(pos, gridOffset, resources_tile_sheet_.GetBounds(type));
 
       // Marque la tile comme non walkable
       int col = static_cast<int>(pos.x / gridOffset.x);
       int row = static_cast<int>(pos.y / gridOffset.y);
       tiles_[get_tile_id(col, row)].is_walkable = false;
+      resource_manager_->SetResourceType(get_tile_id(col, row), type);
 
       return;
     }

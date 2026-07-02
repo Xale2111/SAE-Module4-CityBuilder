@@ -4,7 +4,7 @@
 
 #ifndef SAE_ALEXK_CITYBUILDER_CORE_INCLUDE_DATA_UTILS_H_
 #define SAE_ALEXK_CITYBUILDER_CORE_INCLUDE_DATA_UTILS_H_
-enum class ActionCode : uint8_t {
+enum class ActionCode {
   kPlay,
   kMenu,
   kPause,
@@ -12,13 +12,20 @@ enum class ActionCode : uint8_t {
   kQuit
 };
 
-enum class ResourcesType : uint8_t {
+enum class ResourcesType {
   kWood,
   kStone,
   kFood,
+  kNone
 };
 
-enum class DisplayableBuilding : uint8_t {
+enum class ResourceState {
+  kReady,
+  kOccupied,
+  kGrowing,
+};
+
+enum class DisplayableBuilding {
   kFoodHouse,
   kLumberjackHouse,
   kMineHouse,
@@ -26,11 +33,17 @@ enum class DisplayableBuilding : uint8_t {
   kNone
 };
 
-enum class NpcType{
+enum class NpcType {
   kGatherer,
   kLumberjack,
   kMiner,
   kNone
+};
+
+enum class PathRequest {
+  kNone,
+  kResource,
+  kHome
 };
 
 class DataUtils {

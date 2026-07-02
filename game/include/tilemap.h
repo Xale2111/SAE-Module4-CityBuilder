@@ -15,6 +15,7 @@
 #include "data_utils.h"
 #include <ranges>
 #include <unordered_set>
+#include "resource/resource_manager.h"
 
 enum class BackgroundTiles {
   kGround,
@@ -25,7 +26,7 @@ enum class BackgroundTiles {
 
 class Tilemap {
  public:
-  void Setup(int seed = 1067);
+  void Setup(resource::ResourceManager& rscManager, int seed = 1067);
   void Draw(sf::RenderWindow &window);
   void AddBuilding(DisplayableBuilding building_to_place, sf::Vector2f building_position);
 
@@ -49,6 +50,7 @@ class Tilemap {
 
   std::vector<graphics::Tile> tiles_;
   std::vector<sf::Vector2i> walkables_;
+  resource::ResourceManager* resource_manager_ = nullptr;
 
   const sf::Vector2f grid_offset_ = {DataUtils::kTileSize, DataUtils::kTileSize};
   const int total_cols_ = DataUtils::kTilemapWidth;
