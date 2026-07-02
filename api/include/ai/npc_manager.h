@@ -6,7 +6,6 @@
 #define SAE_ALEXK_CITYBUILDER_API_INCLUDE_AI_NPC_MANAGER_H_
 
 #include <SFML/System/Vector2.hpp>
-#include "graphics/tilemap_renderer.h"
 #include <vector>
 #include <span>
 #include "npc.h"

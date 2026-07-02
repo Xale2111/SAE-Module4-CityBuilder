@@ -41,22 +41,19 @@ void NpcManager::Update(float dt) {
 void NpcManager::UpdatePath(std::span<sf::Vector2i> walkables, std::span<resource::Resource> resourceMap) {
   for (auto &npc : npcs_) {
     if (npc->needPath) {
-      sf::Vector2i destination;
       if (npc->path_request_ == PathRequest::kResource) {
-        destination = npc->FindClosestResource(resourceMap);
-
-        // CORRECTION : Si aucune ressource valide n'est trouvée, on annule la requête
-        if (destination == sf::Vector2i(-1, -1)) {
+        //Could not get a path, canceling the request
+        if(npc->TryToGetPathToClosestResource(resourceMap,graph_,walkables,walkable_tiles_cache_,visited_tiles_cache_) != PathStatus::kNoPath)
+        {
           npc->needPath = false;
           npc->path_request_ = PathRequest::kNone;
           continue;
         }
-      } else {
-        destination = npc->get_house_position();
+      } else
+      {
+        npc->set_path(graph_.GetPath(npc->get_current_position(), npc->get_house_position(), npc->path_request_,
+                                     npc->get_max_steps_astar(), walkables, walkable_tiles_cache_, visited_tiles_cache_));
       }
-
-      // On passe le get_current_position() mis à jour (voir étape 3)
-      npc->set_path(graph_.GetPath(npc->get_current_position(), destination, walkables, walkable_tiles_cache_, visited_tiles_cache_));
       npc->needPath = false;
       npc->path_request_ = PathRequest::kNone;
     }

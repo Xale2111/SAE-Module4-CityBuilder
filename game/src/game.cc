@@ -76,7 +76,7 @@ ActionCode LoopMenu() {
     mainMenu_.HandleButtonsStates(window_);
 
     // Graphic frame
-    window_.clear(sf::Color{192, 255, 255});
+    window_.clear();
     mainMenu_.Draw(window_);
     window_.display();
   }

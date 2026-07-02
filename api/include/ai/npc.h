@@ -27,14 +27,15 @@ class Npc {
  public:
   void Setup(const sf::Texture& shared_texture, sf::IntRect texture_rect, sf::Vector2f spawn_position, NpcType type);
   void Update(float dt);
-//  void AstarPath(std::mdspan<int, std::extents<size_t,2>> tilemap, sf::Vector2f destination);
   void Draw(sf::RenderWindow& window);
 
   void set_path(std::vector<sf::Vector2i> newPath);
   [[nodiscard]] sf::Vector2i const get_current_position(){return { static_cast<int>(motor_.GetPosition().x), static_cast<int>(motor_.GetPosition().y) };}
   [[nodiscard]] sf::Vector2i const get_destination(){return destination_;} ;
-  [[nodiscard]] sf::Vector2i FindClosestResource(std::span<resource::Resource> resourcesPosition) const;
+  [[nodiscard]] sf::Vector2i const FindClosestResource(std::span<resource::Resource> resourcesPosition);
+  [[nodiscard]] PathStatus const TryToGetPathToClosestResource(std::span<resource::Resource> resourcesPosition, AStarGraph& graph, std::span<sf::Vector2i> walkable, std::vector<uint8_t>& cache_walkables, std::vector<uint8_t>& cache_visited);
   [[nodiscard]] sf::Vector2i get_house_position() const{ return house_position_;};
+  [[nodiscard]] int get_max_steps_astar() const { return kMaxStepsAstar;};
 
   bool needPath = false;
   PathRequest path_request_ = PathRequest::kNone;
@@ -59,9 +60,20 @@ class Npc {
   std::unique_ptr<core::ai::behaviour_tree::Node> bt_root_;
   int current_path_index_;
   NpcType type_;
+  std::vector<uint8_t> visited_tiles_;
+  std::vector<sf::Vector2i> unreachable_tiles_;
+
+  PathStatus path_status_ = PathStatus::kNone;
+  float waited_time_before_asking_for_path_ = 0.f;
+
+  static constexpr int kMaxStepsAstar = 300;
+  static constexpr int kMaxStepsFindRsc = 3600;
+  static constexpr int kMaxUnreachableRsc = 5;
+  static constexpr float kWaitTimeBeforeAskingForPath = 10.f;
+
 
   [[nodiscard]] int const CalculateIndexInWorld(int x, int y) const;
-
+  [[nodiscard]] bool const ResourcePositionIsUnreachable(int x, int y) const;
 };
 
 constexpr std::array<sf::Vector2i,8> kMoore{

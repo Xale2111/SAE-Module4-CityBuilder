@@ -25,6 +25,8 @@ class Menu {
   Button start_button_;
   Button quit_button_;
   sf::Font menu_font_;
+  sf::Texture unito_texture_;
+  std::optional<sf::Sprite> unito_logo_;
 
   void SetupStartButton();
   void SetupQuitButton();

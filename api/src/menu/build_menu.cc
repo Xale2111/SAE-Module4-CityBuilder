@@ -203,19 +203,15 @@ void BuildMenu::SetupCardsFont() {
 
 void BuildMenu::SetupCardsPressEvent() {
   bcui_lumberjack_.event_on_press_.Append([this]() {
-    std::println("Lumberjack pressed");
     ChangeSelectedBuildingSprite(bcui_lumberjack_.get_texture_index());
   });
   bcui_food_picker_.event_on_press_.Append([this]() {
-    std::println("Food picker pressed");
     ChangeSelectedBuildingSprite(bcui_food_picker_.get_texture_index());
   });
   bcui_mine_.event_on_press_.Append([this]() {
-    std::printf("Mine pressed");
     ChangeSelectedBuildingSprite(bcui_mine_.get_texture_index());
   });
   bcui_canteen_.event_on_press_.Append([this]() {
-    std::printf("Canteen pressed");
     ChangeSelectedBuildingSprite(bcui_canteen_.get_texture_index());
   });
 }

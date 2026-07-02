@@ -46,6 +46,13 @@ enum class PathRequest {
   kHome
 };
 
+enum class PathStatus{
+  kFound,
+  kSearching,
+  kNoPath,
+  kNone,
+};
+
 struct DataUtils {
   static constexpr int kScreenWidth = 1920;
   static constexpr int kScreenHeight = 1080;

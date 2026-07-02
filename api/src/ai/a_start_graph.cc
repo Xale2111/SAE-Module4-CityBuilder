@@ -19,7 +19,7 @@ bool AStarGraph::ContainsNode(const sf::Vector2i node) const {
   return graph_.contains(node);
 }
 
-std::vector<sf::Vector2i> AStarGraph::GetPath(sf::Vector2i start, sf::Vector2i end, std::span<sf::Vector2i> walkable, std::vector<uint8_t>& cache_walkables, std::vector<uint8_t>& cache_visited) {
+std::vector<sf::Vector2i> AStarGraph::GetPath(sf::Vector2i start, sf::Vector2i end, PathRequest path_type,const int max_steps, std::span<sf::Vector2i> walkable, std::vector<uint8_t>& cache_walkables, std::vector<uint8_t>& cache_visited){
   ZoneScopedNC("AStarGraph::GetPath", tracy::Color::Green);
   std::vector<sf::Vector2i> path;
 
@@ -55,7 +55,9 @@ std::vector<sf::Vector2i> AStarGraph::GetPath(sf::Vector2i start, sf::Vector2i e
 
   open_queue.push(AStarVertex(start, 0, ManhattanDistance(start, end), -1));
 
-  while (!open_queue.empty()) {
+  int steps = 0;
+
+  while (!open_queue.empty() && steps++ < max_steps) {
     AStarVertex node = open_queue.top();
     open_queue.pop();
 
@@ -73,11 +75,13 @@ std::vector<sf::Vector2i> AStarGraph::GetPath(sf::Vector2i start, sf::Vector2i e
       if (node.parent_idx == -1) {
         return path;
       }
-      int current_parent = node.parent_idx;
+      //if going to a resource, we stop on the tile before, else, go on the tile
+      auto pathVertex = path_type == PathRequest::kResource ? visited_vertices[node.parent_idx] : node;
 
-      while (current_parent >= 0 && current_parent < static_cast<int>(visited_vertices.size())) {
-        path.push_back(visited_vertices[current_parent].position);
-        current_parent = visited_vertices[current_parent].parent_idx;
+      while(pathVertex.parent_idx > -1)
+      {
+        path.push_back(pathVertex.position);
+        pathVertex = visited_vertices[pathVertex.parent_idx];
       }
 
       std::ranges::reverse(path);
@@ -93,9 +97,15 @@ std::vector<sf::Vector2i> AStarGraph::GetPath(sf::Vector2i start, sf::Vector2i e
         continue;
       }
 
-      //TODO : FIX issue -> I removed the check for walkable tiles, so npc can walk on non-walkables (which can cause issue like starting on a non-walkable tile afterwards).
-      // I need to check if walkable or not but if it's the resource destination, it will be non-walkable. (shitty idea, change walkable to true of the resource ?)
-      if (!cache_visited[CalculateIndex(n_tx,n_ty)]) {
+      //if walkable -> add to open queue
+      bool is_walkable = cache_walkables[CalculateIndex(n_tx,n_ty)];
+      //if end -> add to open queue
+      bool is_end = (n_tx == end_tx && n_ty == end_ty);
+      //if not walkable but end -> add to open queue
+      bool not_walkable_end = !is_walkable && is_end;
+
+      //no check for the end if it's in the visited since the ned will return the function
+      if (!cache_visited[CalculateIndex(n_tx,n_ty)] && is_walkable || not_walkable_end) {
         open_queue.push(AStarVertex(new_position,
                                     node.g + DataUtils::kTileSize,
                                     ManhattanDistance(new_position, end),
