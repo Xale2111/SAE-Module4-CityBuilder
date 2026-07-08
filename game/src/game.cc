@@ -25,8 +25,6 @@ resource::ResourceManager resource_manager_;
 
 api::ai::NpcManager npc_manager_;
 
-
-
 constexpr float realMapWidth = DataUtils::kTilemapWidth * DataUtils::kTileSize;
 constexpr float realMapHeight = DataUtils::kTilemapHeight * DataUtils::kTileSize;
 
@@ -88,9 +86,9 @@ ActionCode LoopGame() {
   Setup();
   build_menu_.Init();
 
-  float delay = 0.f;
+  float delay = 0.0f;
   float time = 0.0f;
-  int maxNpc = 80;
+  int maxNpc = 100;
   int currentNpc = 0;
 
   // Init the game loop
@@ -98,7 +96,8 @@ ActionCode LoopGame() {
 
     auto dt = clock.restart().asSeconds();
 
-    /*time += dt;
+/*
+    time += dt;
     if (time >= delay && currentNpc < maxNpc)
     {
       time = 0.0f;
@@ -139,17 +138,16 @@ ActionCode LoopGame() {
         tilemap_.AddBuilding(build_menu_.get_current_building_(), snapped);
         //Spawn npc at building position
         auto npcToSpawn = build_menu_.GetNpcTypeBasedOnBuilding();
-        if (npcToSpawn != NpcType::kNone)
-        {
+        if (npcToSpawn != NpcType::kNone) {
           npc_manager_.SpawnNpc(npcToSpawn, snapped);
         }
       }
       build_menu_.try_to_place_building_ = false;
     }
 
-    npc_manager_.UpdatePath(tilemap_.get_walkables(), resource_manager_.get_resources());
+    resource_manager_.Update(dt);
+    npc_manager_.UpdatePath(tilemap_.get_walkables(), resource_manager_.get_resources_ref());
     npc_manager_.Update(dt);
-    resource_manager_.Update();
 
     // Graphic frame
     window_.clear();

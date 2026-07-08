@@ -13,8 +13,7 @@ NpcManager::NpcManager() {
   if (!npc_textures_.loadFromFile("_assets/pnj.png")) {
     std::println(stderr, "Failed to load npc texture");
   }
-  walkable_tiles_cache_.resize(DataUtils::kTilemapWidth * DataUtils::kTilemapHeight);
-  visited_tiles_cache_.resize(DataUtils::kTilemapWidth * DataUtils::kTilemapHeight);
+  graph_.Setup();
 }
 
 void NpcManager::SpawnNpc(NpcType type, sf::Vector2f spawn_position) {
@@ -38,24 +37,34 @@ void NpcManager::Update(float dt) {
   }
 }
 
-void NpcManager::UpdatePath(std::span<sf::Vector2i> walkables, std::span<resource::Resource> resourceMap) {
+void NpcManager::UpdatePath(std::span<sf::Vector2i> walkables, std::vector<resource::Resource>& resourceMap) {
+  current_npc_astar_ = 0;
   for (auto &npc : npcs_) {
-    if (npc->needPath) {
-      if (npc->path_request_ == PathRequest::kResource) {
-        //Could not get a path, canceling the request
-        if(npc->TryToGetPathToClosestResource(resourceMap,graph_,walkables,walkable_tiles_cache_,visited_tiles_cache_) != PathStatus::kNoPath)
-        {
-          npc->needPath = false;
-          npc->path_request_ = PathRequest::kNone;
-          continue;
+    //Path management
+    if (current_npc_astar_ < max_npc_astar_) {
+      current_npc_astar_++;
+      if (npc->needPath) {
+        if (npc->path_request_ == PathRequest::kResource) {
+          //Could not get a path, canceling the request
+          if (npc->TryToGetPathToClosestResource(resourceMap, graph_, walkables) != PathStatus::kNoPath) {
+            npc->needPath = false;
+            npc->path_request_ = PathRequest::kNone;
+            continue;
+          }
+        } else {
+          npc->set_path(graph_.GetPath(npc->get_current_position(), npc->get_house_position(), npc->path_request_,
+                                       npc->get_max_steps_astar(), walkables));
         }
-      } else
-      {
-        npc->set_path(graph_.GetPath(npc->get_current_position(), npc->get_house_position(), npc->path_request_,
-                                     npc->get_max_steps_astar(), walkables, walkable_tiles_cache_, visited_tiles_cache_));
+        npc->needPath = false;
+        npc->path_request_ = PathRequest::kNone;
       }
-      npc->needPath = false;
-      npc->path_request_ = PathRequest::kNone;
+    }
+
+    //resource management
+    auto resIndex = npc->TryToFreeResource();
+    if (resIndex > 0)
+    {
+      resourceMap[resIndex].NextState();
     }
   }
 }

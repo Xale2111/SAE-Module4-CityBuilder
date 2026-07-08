@@ -3,6 +3,7 @@
 //
 
 #include "resource/resource.h"
+#include <print>
 
 namespace resource {
 
@@ -14,7 +15,48 @@ Resource::Resource(sf::Vector2i pos, ResourcesType newType)
 }
 
 
-void Resource::Tick() const{
+void Resource::Tick(float dt){
+  if(current_state_ == ResourceState::kGrowing)
+  {
+    current_growing_time_ += dt;
+    if(IsFullyGrow())
+    {
+      current_growing_time_ = 0.f;
+      NextState();
+    }
+  }
 
+}
+void Resource::NextState() {
+  switch (current_state_) {
+    case ResourceState::kReady:
+      current_state_ = ResourceState::kOccupied;
+      break;
+    case ResourceState::kOccupied:
+      current_state_ = ResourceState::kGrowing;
+      break;
+    case ResourceState::kGrowing:
+      current_state_ = ResourceState::kReady;
+      break;
+  }
+
+
+}
+bool Resource::IsFullyGrow() {
+  bool is_fully_grow = false;
+  switch (type) {
+    case ResourcesType::kWood:
+      is_fully_grow = (current_growing_time_ >= kTreeGrowingTime);
+      break;
+    case ResourcesType::kStone:
+      is_fully_grow = current_growing_time_ >= kStoneGrowingTime;
+      break;
+    case ResourcesType::kFood:
+      is_fully_grow = current_growing_time_ >= kFoodGrowingTime;
+      break;
+    default: break;
+  }
+
+  return is_fully_grow;
 }
 }

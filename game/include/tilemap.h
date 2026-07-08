@@ -36,6 +36,8 @@ class Tilemap {
   [[nodiscard]] sf::Vector2f SnapToGridCenter(sf::Vector2f world_position) const ;
   [[nodiscard]] sf::Vector2f SnapToGridOrigin(sf::Vector2f world_position) const ;
   [[nodiscard]] bool IsTileWalkable(sf::Vector2f world_position) const;
+
+
   //void DebugWalkable();
 
  private:

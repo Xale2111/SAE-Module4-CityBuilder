@@ -22,6 +22,12 @@
 
 namespace api::ai {
 
+enum class WorkingState{
+  kPickingUp,
+  kFinished,
+  kWalking,
+};
+
 
 class Npc {
  public:
@@ -29,13 +35,16 @@ class Npc {
   void Update(float dt);
   void Draw(sf::RenderWindow& window);
 
+
   void set_path(std::vector<sf::Vector2i> newPath);
   [[nodiscard]] sf::Vector2i const get_current_position(){return { static_cast<int>(motor_.GetPosition().x), static_cast<int>(motor_.GetPosition().y) };}
   [[nodiscard]] sf::Vector2i const get_destination(){return destination_;} ;
-  [[nodiscard]] sf::Vector2i const FindClosestResource(std::span<resource::Resource> resourcesPosition);
-  [[nodiscard]] PathStatus const TryToGetPathToClosestResource(std::span<resource::Resource> resourcesPosition, AStarGraph& graph, std::span<sf::Vector2i> walkable, std::vector<uint8_t>& cache_walkables, std::vector<uint8_t>& cache_visited);
+  [[nodiscard]] resource::ClosestResource const FindClosestResource(std::span<resource::Resource> resourcesPosition);
+  [[nodiscard]] PathStatus const TryToGetPathToClosestResource(std::vector<resource::Resource>& resourcesPosition, AStarGraph& graph, std::span<sf::Vector2i> walkable);
   [[nodiscard]] sf::Vector2i get_house_position() const{ return house_position_;};
   [[nodiscard]] int get_max_steps_astar() const { return kMaxStepsAstar;};
+  [[nodiscard]] int TryToFreeResource();
+
 
   bool needPath = false;
   PathRequest path_request_ = PathRequest::kNone;
@@ -46,6 +55,7 @@ class Npc {
   [[nodiscard]] core::ai::behaviour_tree::Status MoveToDestination();
   [[nodiscard]] core::ai::behaviour_tree::Status AskForPath();
   [[nodiscard]] core::ai::behaviour_tree::Status GoBackHome();
+  [[nodiscard]] core::ai::behaviour_tree::Status PickUp();
 
   static constexpr float kSpeed = 200.f;
 
@@ -68,8 +78,13 @@ class Npc {
 
   static constexpr int kMaxStepsAstar = 300;
   static constexpr int kMaxStepsFindRsc = 3600;
-  static constexpr int kMaxUnreachableRsc = 5;
+  static constexpr int kMaxUnreachableRsc = 15;
   static constexpr float kWaitTimeBeforeAskingForPath = 10.f;
+
+  const float kPickingUpTime = 10.f;
+  float current_picking_time_ = 0.f;
+  WorkingState current_working_state_ = WorkingState::kWalking;
+  int current_working_resource_index_ = -1;
 
 
   [[nodiscard]] int const CalculateIndexInWorld(int x, int y) const;

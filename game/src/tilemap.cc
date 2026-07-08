@@ -174,6 +174,7 @@ void Tilemap::Draw(sf::RenderWindow &window) {
   resources_renderer_.Draw(window);
   buildings_renderer_.Draw(window);
 }
+
 void Tilemap::AddBuilding(DisplayableBuilding building_to_place, sf::Vector2f building_position) {
   buildings_renderer_.AddTile(building_position, grid_offset_,
                               buildings_tile_sheet_.GetBounds(building_to_place));
@@ -183,7 +184,6 @@ void Tilemap::AddBuilding(DisplayableBuilding building_to_place, sf::Vector2f bu
   tiles_[get_tile_id(col, row)].is_walkable = false;
   walkables_.push_back({static_cast<int>(tiles_[get_tile_id(col, row)].position.x),
                         static_cast<int>(tiles_[get_tile_id(col, row)].position.y)});
-
 }
 
 int Tilemap::get_sample_index(int sampleSize, int percent) const {

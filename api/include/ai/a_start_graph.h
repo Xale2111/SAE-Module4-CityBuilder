@@ -48,18 +48,28 @@ struct AStarVertexHash{
 class AStarGraph
 {
  public:
-  [[nodiscard]] std::vector<sf::Vector2i> GetPath(sf::Vector2i start, sf::Vector2i end, PathRequest path_type,const int max_steps, std::span<sf::Vector2i> walkable, std::vector<uint8_t>& cache_walkables, std::vector<uint8_t>& cache_visited);
+  [[nodiscard]] std::vector<sf::Vector2i> GetPath(sf::Vector2i start, sf::Vector2i end, PathRequest path_type,const int max_steps, std::span<sf::Vector2i> walkable);
+  void Setup()
+  {
+    walkable_tiles_cache_.resize(DataUtils::kTilemapWidth * DataUtils::kTilemapHeight);
+    visited_tiles_cache_.resize(DataUtils::kTilemapWidth * DataUtils::kTilemapHeight);
+  }
  private:
 
   void AddNode(sf::Vector2i node);
 
   void RemoveNode(sf::Vector2i node);
 
+  std::vector<sf::Vector2i> path_;
+
   [[nodiscard]] bool ContainsNode(sf::Vector2i node) const;
 
   std::unordered_set<sf::Vector2i, Vec2iHash> graph_;
 
   [[nodiscard]] int CalculateIndex(int x, int y) const;
+
+  std::vector<uint8_t> walkable_tiles_cache_;
+  std::vector<uint8_t> visited_tiles_cache_;
 
 };
 constexpr std::array<sf::Vector2i,4> kNeighbours{

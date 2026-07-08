@@ -18,6 +18,11 @@ enum class ResourcesType {
   kFood,
   kNone
 };
+namespace resource{
+constexpr float kTreeGrowingTime = 90.f;
+constexpr float kStoneGrowingTime = 150.f;
+constexpr float kFoodGrowingTime = 120.f;
+}
 
 enum class ResourceState {
   kReady,

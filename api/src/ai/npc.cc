@@ -53,15 +53,15 @@ void Npc::Setup(const sf::Texture &shared_texture,
    *
    * */
 
-  std::unique_ptr<SequenceNode> wanderSequence = MakeSequence();
-  //wanderSequence->AddChild(MakeAction([this] { return PickRandomDestination(); }));
-  wanderSequence->AddChild(MakeAction([this] { return AskForPath(); }));
-  wanderSequence->AddChild(MakeAction([this] { return MoveToDestination(); }));
-  //TODO : Add pick up node (wait at position (oscillate L to R ?) for x seconds, set resource status to growing)
-  wanderSequence->AddChild(MakeAction([this] { return GoBackHome(); }));
-  wanderSequence->AddChild(MakeAction([this] { return MoveToDestination(); }));
+  std::unique_ptr<SequenceNode> pickUpSequence = MakeSequence();
+  //pickUpSequence->AddChild(MakeAction([this] { return PickRandomDestination(); }));
+  pickUpSequence->AddChild(MakeAction([this] { return AskForPath(); }));
+  pickUpSequence->AddChild(MakeAction([this] { return MoveToDestination(); }));
+  pickUpSequence->AddChild(MakeAction([this] { return PickUp(); }));
+  pickUpSequence->AddChild(MakeAction([this] { return GoBackHome(); }));
+  pickUpSequence->AddChild(MakeAction([this] { return MoveToDestination(); }));
 
-  bt_root_ = std::move(wanderSequence);
+  bt_root_ = std::move(pickUpSequence);
 
   visited_tiles_.resize(DataUtils::kTilemapWidth * DataUtils::kTilemapHeight, false);
 
@@ -74,6 +74,11 @@ void Npc::Setup(const sf::Texture &shared_texture,
 
 void Npc::Update(const float dt) {
   motor_.Update(dt);
+  //If is picking up the resource, update the picking time
+  if(current_working_state_ == WorkingState::kPickingUp)
+  {
+    current_picking_time_ += dt;
+  }
   if (bt_root_) {
     bt_root_->Tick();
   }
@@ -112,7 +117,7 @@ void Npc::set_path(std::vector<sf::Vector2i> newPath) {
   }
 }
 
-sf::Vector2i const Npc::FindClosestResource(std::span<resource::Resource> resourcesPosition) {
+resource::ClosestResource const Npc::FindClosestResource(std::span<resource::Resource> resourcesPosition) {
 
   sf::Vector2i npcPos = {
       static_cast<int>(motor_.GetPosition().x) / DataUtils::kTileSize,
@@ -121,7 +126,7 @@ sf::Vector2i const Npc::FindClosestResource(std::span<resource::Resource> resour
 
 
   if (npcPos.x < 0 || npcPos.x >= DataUtils::kTilemapWidth || npcPos.y < 0 || npcPos.y >= DataUtils::kTilemapHeight) {
-    return {-1, -1};
+    return {-1,{-1, -1}}; //Not in map, returning an impossible index and position
   }
 
   std::fill(visited_tiles_.begin(), visited_tiles_.end(), false);
@@ -148,8 +153,7 @@ sf::Vector2i const Npc::FindClosestResource(std::span<resource::Resource> resour
     int current_idx_world = CalculateIndexInWorld(current_pos.x, current_pos.y);
     auto resource = resourcesPosition[current_idx_world];
     if (resource.type == wantedResource && resource.get_state() == ResourceState::kReady) {
-      //TODO: AStar to check if path is possible, if yes, set path, else, add to unreachable tiles and retry next frame
-      return {current_pos.x * DataUtils::kTileSize, current_pos.y * DataUtils::kTileSize};
+      return {current_idx_world,{current_pos.x * DataUtils::kTileSize, current_pos.y * DataUtils::kTileSize}};
     }
 
     for (auto neighbour : kMoore) {
@@ -169,7 +173,7 @@ sf::Vector2i const Npc::FindClosestResource(std::span<resource::Resource> resour
     }
   }
 
-  return {-1, -1};
+  return {-1,{-1, -1}};
 }
 
 core::ai::behaviour_tree::Status Npc::MoveToDestination() {
@@ -206,41 +210,46 @@ core::ai::behaviour_tree::Status Npc::AskForPath() {
   //TODO : Set resource status to occupied
   return core::ai::behaviour_tree::Status::kSuccess;
 }
-/*
-core::ai::behaviour_tree::Status Npc::PickRandomDestination() {
-  int rdm_x = (rand() % DataUtils::kTilemapWidth) * DataUtils::kTileSize;
-  int rdm_y = (rand() % DataUtils::kTilemapHeight) * DataUtils::kTileSize;
-  std::println("Picking random destination : {};{}", rdm_x, rdm_y);
-
-  ChangeDestination({rdm_x, rdm_y});
-
-  return core::ai::behaviour_tree::Status::kSuccess;
-}*/
 
 core::ai::behaviour_tree::Status Npc::GoBackHome() {
   needPath = true;
   path_request_ = PathRequest::kHome;
   return core::ai::behaviour_tree::Status::kSuccess;
 }
+
+core::ai::behaviour_tree::Status Npc::PickUp() {
+  current_working_state_ = WorkingState::kPickingUp;
+  if (current_picking_time_ >= kPickingUpTime) {
+    current_working_state_ = WorkingState::kFinished;
+    return core::ai::behaviour_tree::Status::kSuccess;
+  }
+  return core::ai::behaviour_tree::Status::kRunning;
+}
+
 int const Npc::CalculateIndexInWorld(int x, int y) const {
   return y * DataUtils::kTilemapWidth + x;
 }
 
-PathStatus const Npc::TryToGetPathToClosestResource(std::span<resource::Resource> resourcesPosition,AStarGraph& graph, std::span<sf::Vector2i> walkable, std::vector<uint8_t>& cache_walkables, std::vector<uint8_t>& cache_visited) {
-  auto destination = FindClosestResource(resourcesPosition);
+PathStatus const Npc::TryToGetPathToClosestResource(std::vector<resource::Resource>& resourcesPosition,AStarGraph& graph, std::span<sf::Vector2i> walkable) {
+
+  auto closest_resource = FindClosestResource(resourcesPosition);
   path_status_ = PathStatus::kSearching;
-  if (destination.x == -1 && destination.y == -1) {
+  if (closest_resource.index < 0) {
     path_status_ = PathStatus::kNoPath;
     return path_status_;
   }
-  auto path = graph.GetPath(current_position_, destination, path_request_, kMaxStepsAstar, walkable, cache_walkables, cache_visited);
+  auto path = graph.GetPath(current_position_, closest_resource.position, path_request_, kMaxStepsAstar, walkable);
 
   if (!path.empty()) {
     set_path(path);
+    //If path is possible, set the resource to occupied, set the current resource index the npc is working on and reset timer
+    resourcesPosition[closest_resource.index].NextState();
+    current_working_resource_index_ = closest_resource.index;
+    current_picking_time_ = 0.f;
     path_status_ = PathStatus::kFound;
   }
   else{
-    unreachable_tiles_.push_back({destination});
+    unreachable_tiles_.push_back({closest_resource.position});
     if (unreachable_tiles_.size() >= kMaxUnreachableRsc) {
       std::println("Too many unreachable tiles, canceling path request. Retrying in {} seconds", kWaitTimeBeforeAskingForPath);;
       path_status_ = PathStatus::kNoPath;
@@ -260,4 +269,12 @@ bool const Npc::ResourcePositionIsUnreachable(int x, int y) const {
   return false;
 }
 
+int Npc::TryToFreeResource() {
+  if(current_working_state_ == WorkingState::kFinished)
+  {
+    current_working_state_ = WorkingState::kWalking;
+    return current_working_resource_index_;
+  }
+  return -1;
+}
 }  // namespace api::ai

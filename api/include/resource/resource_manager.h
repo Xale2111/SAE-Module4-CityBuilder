@@ -22,9 +22,10 @@ class ResourceManager {
   void AddResource(sf::Vector2i position, ResourcesType type);
   void SetResourceType(int index, ResourcesType newType);
 
-  void Update();
+  void Update(float dt);
 
   [[nodiscard]] std::span<Resource> get_resources() {return resource_map_;};
+  [[nodiscard]] std::vector<Resource>& get_resources_ref() {return resource_map_;};
 
  private:
   std::vector<Resource> resource_map_;
