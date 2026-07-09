@@ -8,10 +8,9 @@
 #include "SFML/Graphics.hpp"
 #include "button.h"
 #include "building/building_ui_card.h"
+#include "building/building_resource.h"
 
 namespace menu {
-
-
 
 class BuildMenu {
  public:
@@ -24,20 +23,18 @@ class BuildMenu {
   void RemoveBuilding();
   void MoveBuilding();*/
 
-
-
   void HandleMenu(sf::RenderWindow &window, const std::optional<sf::Event> &event);
   void HandleInput(const std::optional<sf::Event> &event);
   void CheckOverBuildMenu(sf::RenderWindow &window);
   void DrawBuildingHologram(sf::RenderWindow &window, sf::Vector2f snap_position);
   void ManageHologramColor(bool can_place_building);
-  [[nodiscard]] bool const get_hover_build_menu(){return hovering_menu_;};
-  [[nodiscard]] const DisplayableBuilding get_current_building_(){return current_selected_building_index_;};
+  [[nodiscard]] bool const get_hover_build_menu() { return hovering_menu_; };
+  [[nodiscard]] const DisplayableBuilding get_current_building_() { return current_selected_building_index_; };
   [[nodiscard]] const NpcType GetNpcTypeBasedOnBuilding();
   void ResetMenu();
 
-
   bool try_to_place_building_ = false;
+  [[nodiscard]] const std::span<building::BuildingResource> get_needed_resources_to_build(){return current_needed_resources_;} ;
 
  private:
   const sf::Vector2f kToggleButtonSize{200, 80};
@@ -59,9 +56,11 @@ class BuildMenu {
   building::BuildingCardUI bcui_canteen_;
 
   std::optional<sf::Sprite> current_display_building_sprite_;
-  DisplayableBuilding current_selected_building_index_= DisplayableBuilding::kNone;
-  sf::Color building_can_be_placed_color_ = {32,255,28,180};
-  sf::Color building_cannot_be_placed_color_ = {255,77,28,180};
+  DisplayableBuilding current_selected_building_index_ = DisplayableBuilding::kNone;
+  sf::Color building_can_be_placed_color_ = {32, 255, 28, 180};
+  sf::Color building_cannot_be_placed_color_ = {255, 77, 28, 180};
+
+  std::vector<building::BuildingResource> current_needed_resources_;
 
   bool toggle_state_ = false;
   bool hovering_menu_ = false;
@@ -83,6 +82,7 @@ class BuildMenu {
   void ChangeSelectedBuildingSprite(int spriteIndex);
   void DisplaySelectedBuilding(sf::RenderWindow &window, sf::Vector2f snap_position);
   void ResetSelectedBuilding();
+  void ChangeNeededResourceBasedOnSelectedBuilding(const std::span<building::BuildingResource> neededResources);
 };
 }
 #endif //SAE_ALEXK_CITYBUILDER_API_SRC_MENU_BUILD_MENU_H_

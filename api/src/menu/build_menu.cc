@@ -165,12 +165,10 @@ void BuildMenu::SetupBuildingCards() {
 
   // Resources
   std::vector<building::BuildingResource>
-      lumberjack_resources = {{{500, ResourcesType::kStone}, {250, ResourcesType::kFood}}};
-  std::vector<building::BuildingResource>
-      picker_resources = {{{575, ResourcesType::kWood}, {300, ResourcesType::kStone}}};
-  std::vector<building::BuildingResource> mine_resources = {{{750, ResourcesType::kWood}}};
-  std::vector<building::BuildingResource>
-      canteen_resources = {{{1500, ResourcesType::kWood}, {1500, ResourcesType::kStone}, {1500, ResourcesType::kFood}}};
+      lumberjack_resources = {{building::kLumberjackNeededStoneAmount, building::kLumberjackNeededFoodAmount}};
+  std::vector<building::BuildingResource> picker_resources = {{building::kPickerNeededWoodAmount,building::kPickerNeededStoneAmount }};
+  std::vector<building::BuildingResource> mine_resources = {{building::kMinorNeededWoodAmount}};
+  std::vector<building::BuildingResource> canteen_resources = {{building::kCanteenNeededWoodAmount,building::kCanteenNeededStoneAmount,building::kCanteenNeededFoodAmount}};
 
   bcui_food_picker_.Init(card_size,
                          {first_card_x + card_step * 0, card_y},
@@ -191,7 +189,7 @@ void BuildMenu::SetupBuildingCards() {
                      3,
                      "Canteen",
                      canteen_resources);
-  bcui_canteen_.set_resource_text("1500 : Wood/Stone/Food");
+  bcui_canteen_.set_resource_text("3000 : Wood/Stone/Food");
 }
 
 void BuildMenu::SetupCardsFont() {
@@ -204,15 +202,21 @@ void BuildMenu::SetupCardsFont() {
 void BuildMenu::SetupCardsPressEvent() {
   bcui_lumberjack_.event_on_press_.Append([this]() {
     ChangeSelectedBuildingSprite(bcui_lumberjack_.get_texture_index());
+    ChangeNeededResourceBasedOnSelectedBuilding(bcui_lumberjack_.get_needed_resources());
   });
   bcui_food_picker_.event_on_press_.Append([this]() {
     ChangeSelectedBuildingSprite(bcui_food_picker_.get_texture_index());
+    ChangeNeededResourceBasedOnSelectedBuilding(bcui_food_picker_.get_needed_resources());
+
   });
   bcui_mine_.event_on_press_.Append([this]() {
     ChangeSelectedBuildingSprite(bcui_mine_.get_texture_index());
+    ChangeNeededResourceBasedOnSelectedBuilding(bcui_mine_.get_needed_resources());
   });
   bcui_canteen_.event_on_press_.Append([this]() {
     ChangeSelectedBuildingSprite(bcui_canteen_.get_texture_index());
+    ChangeNeededResourceBasedOnSelectedBuilding(bcui_canteen_.get_needed_resources());
+
   });
 }
 
@@ -257,6 +261,7 @@ void BuildMenu::DisplaySelectedBuilding(sf::RenderWindow &window, sf::Vector2f s
 void BuildMenu::ResetSelectedBuilding() {
   current_selected_building_index_ = DisplayableBuilding::kNone;
   current_display_building_sprite_.reset();
+  current_needed_resources_.clear();
 }
 const NpcType BuildMenu::GetNpcTypeBasedOnBuilding() {
   switch (current_selected_building_index_) {
@@ -271,6 +276,28 @@ const NpcType BuildMenu::GetNpcTypeBasedOnBuilding() {
     default:break;
   }
   return NpcType::kNone;
+}
+void BuildMenu::ChangeNeededResourceBasedOnSelectedBuilding(std::span<building::BuildingResource> neededResources) {
+  for (auto const& resource : neededResources) {
+    current_needed_resources_.push_back(resource);
+  }
+/*
+  std::string print_needed_resources = "Needed resources: ";
+  for (auto const& resource : current_needed_resources_) {
+    print_needed_resources += std::to_string(resource.amount_)+ " ";
+
+    switch (resource.type_) {
+      case ResourcesType::kWood: print_needed_resources += "Wood";
+        break;
+      case ResourcesType::kStone: print_needed_resources += "Stone";
+        break;
+      case ResourcesType::kFood: print_needed_resources += "Food";
+        break;
+    }
+    print_needed_resources += " ";
+  }
+
+  std::println("{}", print_needed_resources);*/
 }
 
 }

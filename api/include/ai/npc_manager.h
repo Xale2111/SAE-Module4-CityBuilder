@@ -21,10 +21,12 @@ class NpcManager {
   void Update(float dt);
   void UpdatePath(std::span<sf::Vector2i> walkables,std::vector<resource::Resource>& resourceMap);
   void Draw(sf::RenderWindow& window);
+  [[nodiscard]] const std::span<ResourcesType> get_collected_resources()  {return collected_resources_;};
 
  private:
   sf::Texture npc_textures_;
   std::vector<std::unique_ptr<Npc>> npcs_;
+  std::vector<ResourcesType> collected_resources_;
 
   const int max_npc_astar_ = 100;
   int current_npc_astar_ = 0;

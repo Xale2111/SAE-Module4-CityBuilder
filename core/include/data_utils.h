@@ -22,6 +22,10 @@ namespace resource{
 constexpr float kTreeGrowingTime = 90.f;
 constexpr float kStoneGrowingTime = 150.f;
 constexpr float kFoodGrowingTime = 120.f;
+
+constexpr int kWoodPerTreeAmount = 150;
+constexpr int kStonePerRockAmount = 100;
+constexpr int kFoodPerFieldAmount = 200;
 }
 
 enum class ResourceState {

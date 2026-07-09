@@ -105,12 +105,22 @@ ActionCode LoopGame() {
       currentNpc++;
     }*/
 
+//TODO :
+  //build_menu_ wants to place building ?
+  //yes -> check the resources (pass the needed rsc to rscManager)
+  //has enough resources ?
+  //yes -> set bool in building menu (has_needed_resources)
+  //Use the needed resources for the hologram (is ok ? -> green, not ok -> red)
+  //can place also depends
+  //no -> do nothing
+
 
     //TODO : Optimize so this only play when hologram
     sf::Vector2f mouse_world = window_.mapPixelToCoords(
         sf::Mouse::getPosition(window_), camera_.GetView());
     sf::Vector2f snapped = tilemap_.SnapToGridCenter(mouse_world);
-    bool can_place = tilemap_.IsTileWalkable(snapped);
+    bool has_needed_resources = resource_manager_.CheckAvailableResource(build_menu_.get_needed_resources_to_build());
+    bool can_place = tilemap_.IsTileWalkable(snapped) && has_needed_resources;
 
     build_menu_.ManageHologramColor(can_place);
 
@@ -133,19 +143,23 @@ ActionCode LoopGame() {
     }
 
     if (build_menu_.try_to_place_building_) {
-      if (build_menu_.get_current_building_() != DisplayableBuilding::kNone && can_place) {
-        snapped = tilemap_.SnapToGridOrigin(mouse_world);
-        tilemap_.AddBuilding(build_menu_.get_current_building_(), snapped);
-        //Spawn npc at building position
-        auto npcToSpawn = build_menu_.GetNpcTypeBasedOnBuilding();
-        if (npcToSpawn != NpcType::kNone) {
-          npc_manager_.SpawnNpc(npcToSpawn, snapped);
+      if (has_needed_resources) {
+        if (build_menu_.get_current_building_() != DisplayableBuilding::kNone && can_place) {
+          snapped = tilemap_.SnapToGridOrigin(mouse_world);
+          tilemap_.AddBuilding(build_menu_.get_current_building_(), snapped);
+          //Spawn npc at building position
+          auto npcToSpawn = build_menu_.GetNpcTypeBasedOnBuilding();
+          if (npcToSpawn != NpcType::kNone) {
+            npc_manager_.SpawnNpc(npcToSpawn, snapped);
+          }
+          resource_manager_.UseResource(build_menu_.get_needed_resources_to_build());
         }
       }
       build_menu_.try_to_place_building_ = false;
     }
 
     resource_manager_.Update(dt);
+    resource_manager_.CollectResources(npc_manager_.get_collected_resources());
     npc_manager_.UpdatePath(tilemap_.get_walkables(), resource_manager_.get_resources_ref());
     npc_manager_.Update(dt);
 

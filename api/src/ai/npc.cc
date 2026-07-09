@@ -35,6 +35,14 @@ void Npc::Setup(const sf::Texture &shared_texture,
 
   house_position_ = {static_cast<int>(spawn_position.x), static_cast<int>(spawn_position.y)};
 
+  switch (type_) {
+    case NpcType::kLumberjack: wanted_resource_ = ResourcesType::kWood; break;
+    case NpcType::kMiner: wanted_resource_ = ResourcesType::kStone; break;
+    case NpcType::kGatherer: wanted_resource_ = ResourcesType::kFood; break;
+    default: break;
+  }
+
+
   using namespace core::ai::behaviour_tree;
 
   /*
@@ -136,14 +144,6 @@ resource::ClosestResource const Npc::FindClosestResource(std::span<resource::Res
   visited_tiles_[CalculateIndexInWorld(npcPos.x, npcPos.y)] = true;
   open_queue.push_back(npcPos);
 
-  ResourcesType wantedResource = ResourcesType::kNone;
-  switch (type_) {
-    case NpcType::kLumberjack: wantedResource = ResourcesType::kWood; break;
-    case NpcType::kMiner:      wantedResource = ResourcesType::kStone; break;
-    case NpcType::kGatherer:   wantedResource = ResourcesType::kFood; break;
-    default: break;
-  }
-
   int current_index = 0;
 
   while (current_index < static_cast<int>(open_queue.size()) && current_index < kMaxStepsFindRsc) {
@@ -152,7 +152,7 @@ resource::ClosestResource const Npc::FindClosestResource(std::span<resource::Res
 
     int current_idx_world = CalculateIndexInWorld(current_pos.x, current_pos.y);
     auto resource = resourcesPosition[current_idx_world];
-    if (resource.type == wantedResource && resource.get_state() == ResourceState::kReady) {
+    if (resource.type == wanted_resource_ && resource.get_state() == ResourceState::kReady) {
       return {current_idx_world,{current_pos.x * DataUtils::kTileSize, current_pos.y * DataUtils::kTileSize}};
     }
 
@@ -178,7 +178,7 @@ resource::ClosestResource const Npc::FindClosestResource(std::span<resource::Res
 
 core::ai::behaviour_tree::Status Npc::MoveToDestination() {
 
-  if (needPath) {
+  if (need_path_) {
     return core::ai::behaviour_tree::Status::kRunning;
   }
 
@@ -204,15 +204,14 @@ core::ai::behaviour_tree::Status Npc::MoveToDestination() {
 
 core::ai::behaviour_tree::Status Npc::AskForPath() {
   if (path_status_ != PathStatus::kNoPath) {
-    needPath = true;
+    need_path_ = true;
     path_request_ = PathRequest::kResource;
   }
-  //TODO : Set resource status to occupied
   return core::ai::behaviour_tree::Status::kSuccess;
 }
 
 core::ai::behaviour_tree::Status Npc::GoBackHome() {
-  needPath = true;
+  need_path_ = true;
   path_request_ = PathRequest::kHome;
   return core::ai::behaviour_tree::Status::kSuccess;
 }
@@ -221,6 +220,7 @@ core::ai::behaviour_tree::Status Npc::PickUp() {
   current_working_state_ = WorkingState::kPickingUp;
   if (current_picking_time_ >= kPickingUpTime) {
     current_working_state_ = WorkingState::kFinished;
+    brought_back_resource_home = true;
     return core::ai::behaviour_tree::Status::kSuccess;
   }
   return core::ai::behaviour_tree::Status::kRunning;

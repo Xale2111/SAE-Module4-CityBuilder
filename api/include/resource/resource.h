@@ -6,7 +6,10 @@
 #define SAE_ALEXK_CITYBUILDER_API_INCLUDE_RESOURCE_RESOURCE_H_
 
 #include "SFML/System/Vector2.hpp"
+#include "SFML/Graphics/Vertex.hpp"
 #include "data_utils.h"
+#include <vector>
+#include <optional>
 
 namespace resource {
 struct ClosestResource{
@@ -24,13 +27,13 @@ class Resource {
 
   ResourcesType type;
 
+  //TODO : Add vertex of the resources (we need to have a ref to the vertices of the resource so we can update it when changing the state)
+
  private:
   sf::Vector2i pos_;
   ResourceState current_state_;
   float current_growing_time_ = 0.f;
   bool IsFullyGrow();
-
-
 };
 }
 #endif //SAE_ALEXK_CITYBUILDER_API_INCLUDE_RESOURCE_RESOURCE_H_

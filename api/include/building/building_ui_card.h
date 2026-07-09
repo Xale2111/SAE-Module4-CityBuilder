@@ -23,7 +23,7 @@ class BuildingCardUI {
             int texture_index,
             std::string_view name,
             std::vector<BuildingResource>);
-  [[nodiscard]] std::span<const BuildingResource> get_needed_resources() { return needed_resources_; };
+  [[nodiscard]] std::span<BuildingResource> get_needed_resources() { return needed_resources_; };
   [[nodiscard]] const int get_texture_index(){return texture_index_;};
 
   void ResetState();
