@@ -105,15 +105,6 @@ ActionCode LoopGame() {
       currentNpc++;
     }*/
 
-//TODO :
-  //build_menu_ wants to place building ?
-  //yes -> check the resources (pass the needed rsc to rscManager)
-  //has enough resources ?
-  //yes -> set bool in building menu (has_needed_resources)
-  //Use the needed resources for the hologram (is ok ? -> green, not ok -> red)
-  //can place also depends
-  //no -> do nothing
-
 
     //TODO : Optimize so this only play when hologram
     sf::Vector2f mouse_world = window_.mapPixelToCoords(
@@ -162,6 +153,11 @@ ActionCode LoopGame() {
     resource_manager_.CollectResources(npc_manager_.get_collected_resources());
     npc_manager_.UpdatePath(tilemap_.get_walkables(), resource_manager_.get_resources_ref());
     npc_manager_.Update(dt);
+
+    build_menu_.UpdateWoodValue(resource_manager_.get_wood_amount());
+    build_menu_.UpdateStoneValue(resource_manager_.get_stone_amount());
+    build_menu_.UpdateFoodValue(resource_manager_.get_food_amount());
+
 
     // Graphic frame
     window_.clear();

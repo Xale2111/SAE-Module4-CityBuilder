@@ -61,6 +61,9 @@ void Npc::Setup(const sf::Texture &shared_texture,
    *
    * */
 
+
+  //TODO : Add the canteen sequence
+  //TODO : Add the wait in house part (when starting and waiting for a path and when coming back from work)
   std::unique_ptr<SequenceNode> pickUpSequence = MakeSequence();
   //pickUpSequence->AddChild(MakeAction([this] { return PickRandomDestination(); }));
   pickUpSequence->AddChild(MakeAction([this] { return AskForPath(); }));

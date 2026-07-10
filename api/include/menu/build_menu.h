@@ -33,6 +33,10 @@ class BuildMenu {
   [[nodiscard]] const NpcType GetNpcTypeBasedOnBuilding();
   void ResetMenu();
 
+  void UpdateWoodValue(int woodAmount);
+  void UpdateStoneValue(int stoneAmount);
+  void UpdateFoodValue(int foodAmount);
+
   bool try_to_place_building_ = false;
   [[nodiscard]] const std::span<building::BuildingResource> get_needed_resources_to_build(){return current_needed_resources_;} ;
 
@@ -45,16 +49,29 @@ class BuildMenu {
 
   sf::Texture buildings_texture_;
 
+  //BUILD PANEL
   sf::Vector2f position_;
   sf::Font build_menu_font_;
   Button toggle_menu_button_;
   sf::RectangleShape bg_shape_;
 
+  //BUILDING CARDS
   building::BuildingCardUI bcui_lumberjack_;
   building::BuildingCardUI bcui_mine_;
   building::BuildingCardUI bcui_food_picker_;
   building::BuildingCardUI bcui_canteen_;
 
+  //RESOURCES INFOS PANEL
+  sf::RectangleShape resources_infos_panel_;
+  std::optional<sf::Text> panel_title_text_;
+  std::optional<sf::Text> wood_info_label_text_;
+  std::optional<sf::Text> wood_info_value_text_;
+  std::optional<sf::Text> stone_info_label_text_;
+  std::optional<sf::Text> stone_info_value_text_;
+  std::optional<sf::Text> food_info_label_text_;
+  std::optional<sf::Text> food_info_value_text_;
+
+  //HOLOGRAM
   std::optional<sf::Sprite> current_display_building_sprite_;
   DisplayableBuilding current_selected_building_index_ = DisplayableBuilding::kNone;
   sf::Color building_can_be_placed_color_ = {32, 255, 28, 180};
@@ -75,6 +92,7 @@ class BuildMenu {
   void SetupBuildingCards();
   void SetupCardsFont();
   void SetupCardsPressEvent();
+  void SetupResourceInfosPanel();
 
   void HandleCardsHover(sf::RenderWindow &window);
   void HandleCardsInput(const std::optional<sf::Event> &event);

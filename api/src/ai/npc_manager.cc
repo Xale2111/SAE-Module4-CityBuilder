@@ -38,9 +38,6 @@ void NpcManager::Update(float dt) {
     if (npc->brought_back_resource_home) {
       npc->brought_back_resource_home = false;
       collected_resources_.push_back(npc->get_wanted_resource());
-
-      //TODO : get the resource the npc brought back. Add to a list of collected resource
-      //in game.cc, add to the resource manager and clear list
     }
   }
 }

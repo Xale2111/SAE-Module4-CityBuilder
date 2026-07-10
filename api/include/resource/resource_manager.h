@@ -36,6 +36,11 @@ class ResourceManager {
   [[nodiscard]] std::span<Resource> get_resources() {return resource_map_;};
   [[nodiscard]] std::vector<Resource>& get_resources_ref() {return resource_map_;};
 
+  [[nodiscard]] int const get_wood_amount() {return amount_of_collected_wood_;};
+  [[nodiscard]] int const get_stone_amount() {return amount_of_collected_stone_;};
+  [[nodiscard]] int const get_food_amount() {return amount_of_collected_food_;};
+
+
  private:
   std::vector<Resource> resource_map_;
   //TODO : Display the amount of each resource collected

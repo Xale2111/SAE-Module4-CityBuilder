@@ -28,6 +28,7 @@ void BuildMenu::Init() {
   SetupCardsFont();
   SetupBuildingCards();
   SetupCardsPressEvent();
+  SetupResourceInfosPanel();
 }
 
 void BuildMenu::Draw(sf::RenderWindow &window) {
@@ -40,6 +41,37 @@ void BuildMenu::Draw(sf::RenderWindow &window) {
     bcui_mine_.Draw(window);
     bcui_canteen_.Draw(window);
   }
+
+  //RESOURCES INFOS PANEL
+  window.draw(resources_infos_panel_);
+  if (panel_title_text_.has_value()) {
+    window.draw(*panel_title_text_);
+  }
+
+  //wood
+  if (wood_info_label_text_.has_value()) {
+    window.draw(*wood_info_label_text_);
+  }
+  if (wood_info_value_text_.has_value()) {
+    window.draw(*wood_info_value_text_);
+  }
+
+  //stone
+  if (stone_info_label_text_.has_value()) {
+    window.draw(*stone_info_label_text_);
+  }
+  if (stone_info_value_text_.has_value()) {
+    window.draw(*stone_info_value_text_);
+  }
+
+  //food
+  if (food_info_label_text_.has_value()) {
+    window.draw(*food_info_label_text_);
+  }
+  if (food_info_value_text_.has_value()) {
+    window.draw(*food_info_value_text_);
+  }
+
 }
 
 void BuildMenu::HandleMenu(sf::RenderWindow &window, const std::optional<sf::Event> &event) {
@@ -116,6 +148,32 @@ void BuildMenu::ResetMenu() {
   toggle_menu_button_.ResetPressState();
   toggle_menu_button_.event_on_press_.Clear();
 }
+
+
+void BuildMenu::UpdateWoodValue(int woodAmount) {
+  if(wood_info_value_text_.has_value())
+  {
+    wood_info_value_text_->setString(std::to_string(woodAmount));
+    wood_info_value_text_->setOrigin({wood_info_value_text_->getLocalBounds().size.x / 2, 0});
+  }
+}
+
+void BuildMenu::UpdateStoneValue(int stoneAmount) {
+  if(stone_info_value_text_.has_value())
+  {
+    stone_info_value_text_->setString(std::to_string(stoneAmount));
+    stone_info_value_text_->setOrigin({stone_info_value_text_->getLocalBounds().size.x / 2, 0});
+  }
+}
+
+void BuildMenu::UpdateFoodValue(int foodAmount) {
+  if(food_info_value_text_.has_value())
+  {
+    food_info_value_text_->setString(std::to_string(foodAmount));
+    food_info_value_text_->setOrigin({food_info_value_text_->getLocalBounds().size.x / 2, 0});
+  }
+}
+
 
 void BuildMenu::HandleButtonsStates(sf::RenderWindow &window) {
   toggle_menu_button_.CheckHover(sf::Vector2f(sf::Mouse::getPosition(window)));
@@ -218,6 +276,69 @@ void BuildMenu::SetupCardsPressEvent() {
     ChangeNeededResourceBasedOnSelectedBuilding(bcui_canteen_.get_needed_resources());
 
   });
+}
+
+void BuildMenu::SetupResourceInfosPanel() {
+  resources_infos_panel_.setSize({DataUtils::kScreenWidth * .25f, DataUtils::kScreenHeight * .2f});
+  resources_infos_panel_.setFillColor({0, 0, 0, 180});
+  resources_infos_panel_.setPosition({0,0});
+
+  //setting up the font
+  panel_title_text_ = sf::Text(build_menu_font_);
+  wood_info_label_text_ = sf::Text(build_menu_font_);
+  stone_info_label_text_ = sf::Text(build_menu_font_);
+  food_info_label_text_ = sf::Text(build_menu_font_);
+
+  wood_info_value_text_ = sf::Text(build_menu_font_);
+  stone_info_value_text_ = sf::Text(build_menu_font_);
+  food_info_value_text_ = sf::Text(build_menu_font_);
+
+  //PANEL TITLE
+  panel_title_text_->setString("Inventory");
+  panel_title_text_->setFillColor({255, 255, 255});
+  panel_title_text_->setCharacterSize(48);
+  panel_title_text_->setOrigin({panel_title_text_->getLocalBounds().size.x / 2, 0});
+  panel_title_text_->setPosition({resources_infos_panel_.getSize().x / 2,10});
+
+  //WOOD INFOS
+  wood_info_label_text_->setString("Wood");
+  wood_info_label_text_->setFillColor({255, 255, 255});
+  wood_info_label_text_->setCharacterSize(32);
+  wood_info_label_text_->setOrigin({wood_info_label_text_->getLocalBounds().size.x / 2, 0});
+  wood_info_label_text_->setPosition({resources_infos_panel_.getSize().x / 5, 100});
+
+  wood_info_value_text_->setString("0");
+  wood_info_value_text_->setFillColor({255, 255, 255});
+  wood_info_value_text_->setCharacterSize(24);
+  wood_info_value_text_->setOrigin({wood_info_value_text_->getLocalBounds().size.x / 2, 0});
+  wood_info_value_text_->setPosition({resources_infos_panel_.getSize().x / 5, 150});
+
+  //STONE INFOS
+  stone_info_label_text_->setString("Stone");
+  stone_info_label_text_->setFillColor({255, 255, 255});
+  stone_info_label_text_->setCharacterSize(32);
+  stone_info_label_text_->setOrigin({stone_info_label_text_->getLocalBounds().size.x / 2, 0});
+  stone_info_label_text_->setPosition({resources_infos_panel_.getSize().x / 2, 100});
+
+  stone_info_value_text_->setString("0");
+  stone_info_value_text_->setFillColor({255, 255, 255});
+  stone_info_value_text_->setCharacterSize(24);
+  stone_info_value_text_->setOrigin({stone_info_value_text_->getLocalBounds().size.x / 2, 0});
+  stone_info_value_text_->setPosition({resources_infos_panel_.getSize().x / 2, 150});
+
+  //FOOD INFOS
+  food_info_label_text_->setString("Food");
+  food_info_label_text_->setFillColor({255, 255, 255});
+  food_info_label_text_->setCharacterSize(32);
+  food_info_label_text_->setOrigin({food_info_label_text_->getLocalBounds().size.x / 2, 0});
+  food_info_label_text_->setPosition({resources_infos_panel_.getSize().x * 4 / 5, 100});
+
+  food_info_value_text_->setString("0");
+  food_info_value_text_->setFillColor({255, 255, 255});
+  food_info_value_text_->setCharacterSize(24);
+  food_info_value_text_->setOrigin({food_info_value_text_->getLocalBounds().size.x / 2, 0});
+  food_info_value_text_->setPosition({resources_infos_panel_.getSize().x *4/5, 150});
+
 }
 
 void BuildMenu::HandleCardsHover(sf::RenderWindow &window) {
