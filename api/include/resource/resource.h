@@ -21,8 +21,8 @@ class Resource {
  public:
   Resource(sf::Vector2i, ResourcesType newType);
   void Tick(float dt);
-  [[nodiscard]] sf::Vector2i const get_pos(){return pos_;};
-  [[nodiscard]] ResourceState const get_state(){return current_state_;};
+  [[nodiscard]] sf::Vector2i get_pos() const { return pos_; }
+  [[nodiscard]] ResourceState get_state() const { return current_state_; }
   void NextState();
 
   ResourcesType type;

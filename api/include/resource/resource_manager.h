@@ -31,19 +31,17 @@ class ResourceManager {
   void UseResource(std::span<building::BuildingResource> usedResources);
   void UseResource(int amount, ResourcesType type);
 
-
-
-  [[nodiscard]] std::span<Resource> get_resources() {return resource_map_;};
+  [[nodiscard]] std::span<const Resource> get_resources() {return resource_map_;};
   [[nodiscard]] std::vector<Resource>& get_resources_ref() {return resource_map_;};
 
-  [[nodiscard]] int const get_wood_amount() {return amount_of_collected_wood_;};
-  [[nodiscard]] int const get_stone_amount() {return amount_of_collected_stone_;};
-  [[nodiscard]] int const get_food_amount() {return amount_of_collected_food_;};
+  [[nodiscard]] int get_wood_amount() const {return amount_of_collected_wood_;};
+  [[nodiscard]] int get_stone_amount() const {return amount_of_collected_stone_;};
+  [[nodiscard]] int get_food_amount() const {return amount_of_collected_food_;};
+  [[nodiscard]] ResourceAmounts get_all_resources_amount() const {return {amount_of_collected_wood_,amount_of_collected_stone_,amount_of_collected_food_};};
 
 
  private:
   std::vector<Resource> resource_map_;
-  //TODO : Display the amount of each resource collected
   int amount_of_collected_wood_ = 0;
   int amount_of_collected_stone_= building::kLumberjackNeededStoneAmount.amount_;
   int amount_of_collected_food_ = building::kLumberjackNeededFoodAmount.amount_;

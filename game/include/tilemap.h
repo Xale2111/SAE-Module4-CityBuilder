@@ -37,6 +37,7 @@ class Tilemap {
   [[nodiscard]] sf::Vector2f SnapToGridOrigin(sf::Vector2f world_position) const ;
   [[nodiscard]] bool IsTileWalkable(sf::Vector2f world_position) const;
 
+  [[nodiscard]] std::span<const BuildingInfos> get_placed_buildings() {return placed_buildings_;} ;
 
   //void DebugWalkable();
 
@@ -47,6 +48,8 @@ class Tilemap {
   graphics::TileSheet<BackgroundTiles> ground_tile_sheet_;
   graphics::TileSheet<ResourcesType> resources_tile_sheet_;
   graphics::TileSheet<DisplayableBuilding> buildings_tile_sheet_;
+
+  std::vector<BuildingInfos> placed_buildings_;
 
   std::vector<graphics::Tile> tiles_;
   std::vector<sf::Vector2i> walkables_;

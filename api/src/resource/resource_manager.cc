@@ -3,7 +3,7 @@
 //
 
 #include "resource/resource_manager.h"
-#include <print>
+
 
 namespace resource {
 
@@ -39,8 +39,6 @@ void ResourceManager::CollectResources(std::span<ResourcesType> collectedResourc
         break;
     }
   }
-
-  std::println("Current resources : Wood : {} Stone : {} Food : {}", amount_of_collected_wood_, amount_of_collected_stone_, amount_of_collected_food_);
 
 }
 

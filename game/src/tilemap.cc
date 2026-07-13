@@ -184,6 +184,8 @@ void Tilemap::AddBuilding(DisplayableBuilding building_to_place, sf::Vector2f bu
   tiles_[get_tile_id(col, row)].is_walkable = false;
   walkables_.push_back({static_cast<int>(tiles_[get_tile_id(col, row)].position.x),
                         static_cast<int>(tiles_[get_tile_id(col, row)].position.y)});
+
+  placed_buildings_.push_back({building_to_place, static_cast<int>(building_position.x), static_cast<int>(building_position.y)});
 }
 
 int Tilemap::get_sample_index(int sampleSize, int percent) const {

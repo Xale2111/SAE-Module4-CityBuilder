@@ -10,6 +10,7 @@
 #include "ai/npc_manager.h"
 #include "resource/resource_manager.h"
 #include <tracy/Tracy.hpp>
+#include "saver/saver.h"
 
 namespace game {
 
@@ -22,6 +23,8 @@ menu::Menu mainMenu_;
 menu::BuildMenu build_menu_;
 camera::Camera camera_;
 resource::ResourceManager resource_manager_;
+
+saver::Saver saver_;
 
 api::ai::NpcManager npc_manager_;
 
@@ -83,6 +86,8 @@ ActionCode LoopMenu() {
 }
 
 ActionCode LoopGame() {
+  //if (!saver_.LoadGame(resource_manager_.get_all_resources_amount(),resource_manager_.get_resources(),tilemap_.get_placed_buildings())) {
+  //}
   Setup();
   build_menu_.Init();
 
@@ -120,6 +125,7 @@ ActionCode LoopGame() {
     while (const std::optional event = window_.pollEvent()) {
       // Close window: exit
       if (event->is<sf::Event::Closed>()) {
+        saver_.SaveGame(resource_manager_.get_all_resources_amount(),resource_manager_.get_resources(),tilemap_.get_placed_buildings());
         build_menu_.ResetMenu();
         window_.close();
       }

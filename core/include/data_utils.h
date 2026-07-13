@@ -12,6 +12,12 @@ enum class ActionCode {
   kQuit
 };
 
+struct ResourceAmounts {
+  int wood;
+  int stone;
+  int food;
+};
+
 enum class ResourcesType {
   kWood,
   kStone,
@@ -40,6 +46,12 @@ enum class DisplayableBuilding {
   kMineHouse,
   kCanteen,
   kNone
+};
+
+struct BuildingInfos{
+  DisplayableBuilding type;
+  int x;
+  int y;
 };
 
 enum class NpcType {
