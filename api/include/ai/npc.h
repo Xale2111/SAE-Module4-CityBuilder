@@ -78,7 +78,7 @@ class Npc {
   static constexpr int kMaxStepsAstar = 400;                  //20^2 square area of 20x20 tiles for pathfinding (usually take between 12 and 30 steps)
   static constexpr int kMaxStepsFindRsc = 3600;               // 60^2 square area of 60x60 tiles for the closest resource (usually take between 100 and 300 steps)
   static constexpr int kMaxUnreachableRsc = 15;               //will find the 15 closest resources before giving up; the smaller the number is, the quicker the npc will give up
-  static constexpr float kWaitTimeBeforeAskingForPath = 60.f; // in seconds. Time before the npc will wait before trying for a path again
+  static constexpr float kWaitTimeBeforeAskingForPath = 45.f; // in seconds. Time before the npc will wait before trying for a path again
 
   const float kPickingUpTime = 10.f;
   float current_picking_time_ = 0.f;

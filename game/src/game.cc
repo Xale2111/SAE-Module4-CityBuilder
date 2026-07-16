@@ -40,7 +40,8 @@ void Setup() {
 
   // Create the main window
   //window_.create(sf::VideoMode({1920, 1080}), "City Builder de fou malade avec des explosions !!",sf::State::Fullscreen);
-  window_.create(sf::VideoMode({DataUtils::kScreenWidth, DataUtils::kScreenHeight}),"City Builder de fou malade avec des explosions !!");
+  window_.create(sf::VideoMode({DataUtils::kScreenWidth, DataUtils::kScreenHeight}),
+                 "City Builder de fou malade avec des explosions !!");
   //window_.create(sf::VideoMode({DataUtils::kScreenWidth, DataUtils::kScreenHeight}),"City Builder de fou malade avec des explosions !!",sf::State::Fullscreen);
 
   srand(time(0));
@@ -51,7 +52,6 @@ void Setup() {
   //npc_manager_.SpawnNpc(NpcType::kLumberjack,{realMapWidth / 2.0f, realMapHeight / 2.0f});
 
   npc_manager_.Reset();
-
 }
 
 ActionCode LoopMenu() {
@@ -85,15 +85,24 @@ ActionCode LoopMenu() {
 }
 
 ActionCode LoopGame() {
-    Setup();
+  Setup();
+
+  //HAS A SAFE FILE
   if (saver_.DoesSaveFileExists() && saver_.LoadGame(resource_manager_.get_wood_amount_ref(),resource_manager_.get_stone_amount_ref(),resource_manager_.get_food_amount_ref(),resource_manager_.get_resources_ref(),tilemap_.get_placed_buildings_ref())) {
     tilemap_.ReconstructMapAfterLoad(resource_manager_);
-  } else {
+    //RESPAWN ALL NPCS
+    for (auto &building : tilemap_.get_placed_buildings()) {
+      if(building.type == DisplayableBuilding::kNone || building.type == DisplayableBuilding::kCanteen) continue;
+      NpcType npcType = static_cast<NpcType>(building.type);
+      npc_manager_.SpawnNpc(npcType, {static_cast<float>(building.x), static_cast<float>(building.y)});
+    }
+  }
+    //HAS NO SAFE FILE
+  else {
     tilemap_.Setup(resource_manager_);
     saver_.SaveGame(resource_manager_.get_all_resources_amount(),resource_manager_.get_resources(),tilemap_.get_placed_buildings());
   }
   build_menu_.Init();
-
 
   float delay = 0.0f;
   float time = 0.0f;
@@ -162,7 +171,17 @@ ActionCode LoopGame() {
     }
 
     resource_manager_.Update(dt);
+
+    for (int index : resource_manager_.PopHarvestedResources()) {
+      tilemap_.OnResourceHarvested(index);
+    }
+
+    for (int index : resource_manager_.PopRespawnedResources()) {
+      tilemap_.OnResourceRespawned(index);
+    }
+
     resource_manager_.CollectResources(npc_manager_.get_collected_resources());
+
     npc_manager_.UpdatePath(tilemap_.get_walkables(), resource_manager_.get_resources_ref());
     npc_manager_.Update(dt);
 

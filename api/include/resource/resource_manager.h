@@ -42,6 +42,17 @@ class ResourceManager {
   [[nodiscard]] int& get_food_amount_ref() {return amount_of_collected_food_;};
   [[nodiscard]] ResourceAmounts get_all_resources_amount() const {return {amount_of_collected_wood_,amount_of_collected_stone_,amount_of_collected_food_};};
 
+  [[nodiscard]] std::vector<int> PopHarvestedResources() {
+    std::vector<int> result = std::move(harvested_this_frame_);
+    harvested_this_frame_.clear();
+    return result;
+  }
+
+  [[nodiscard]] std::vector<int> PopRespawnedResources() {
+    std::vector<int> result = std::move(respawned_this_frame_);
+    respawned_this_frame_.clear();
+    return result;
+  }
 
 
  private:
@@ -53,6 +64,9 @@ class ResourceManager {
   int amount_of_collected_wood_ = 50000;
   int amount_of_collected_stone_= 50000;
   int amount_of_collected_food_ = 50000;
+
+  std::vector<int> harvested_this_frame_;
+  std::vector<int> respawned_this_frame_;
 };
 }
 #endif //SAE_ALEXK_CITYBUILDER_API_SRC_RESOURCE_RESOURCEMANAGER_H_

@@ -70,6 +70,7 @@ void NpcManager::UpdatePath(std::span<sf::Vector2i> walkables, std::vector<resou
     if (resIndex >= 0)
     {
       resourceMap[resIndex].NextState();
+      //NEED TO CHANGE RES VISUAL
     }
   }
 }

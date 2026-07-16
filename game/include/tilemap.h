@@ -41,6 +41,8 @@ class Tilemap {
   [[nodiscard]] std::span<const BuildingInfos> get_placed_buildings() {return placed_buildings_;} ;
   [[nodiscard]] std::vector<BuildingInfos>& get_placed_buildings_ref() {return placed_buildings_;} ;
 
+  void OnResourceHarvested(int resource_index);
+  void OnResourceRespawned(int resource_index);
 
   //void DebugWalkable();
 
@@ -69,6 +71,7 @@ class Tilemap {
 
 
   void RebuildResources(sf::Vector2f pos, sf::Vector2f gridOffset, ResourcesType type);
+  void RebuildBuilding(DisplayableBuilding building_to_place, sf::Vector2f building_position);
 
   bool InitGroundTileSheet();
   bool InitResourcesTileSheet();

@@ -7,6 +7,7 @@
 
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/VertexArray.hpp>
+#include "unordered_map"
 
 namespace graphics {
 
@@ -21,6 +22,8 @@ class TilemapRenderer {
   void Draw(sf::RenderWindow &window) const;
   void SetTexture(sf::Texture *texture);
   void Clear();
+  [[nodiscard]] bool UpdateTileTexture(sf::Vector2f pos, sf::FloatRect newTexBounds);
+
 
  private:
   const sf::Color color = sf::Color::White;
@@ -29,7 +32,13 @@ class TilemapRenderer {
   sf::Vector2f gridOffset_{24,24};
   sf::Texture *texture_ = nullptr;
   sf::VertexArray vertices_ = sf::VertexArray(sf::PrimitiveType::Triangles);
+  std::unordered_map<uint64_t, int> tile_vertex_index_; // position → index dans vertices_
 
+  static uint64_t EncodePosition(sf::Vector2f pos) {
+    uint32_t x = static_cast<uint32_t>(pos.x);
+    uint32_t y = static_cast<uint32_t>(pos.y);
+    return (static_cast<uint64_t>(x) << 32) | y;
+  }
 };
 }
 

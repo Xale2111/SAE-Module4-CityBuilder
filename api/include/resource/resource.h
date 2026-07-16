@@ -26,6 +26,8 @@ class Resource {
   void NextState();
 
   ResourcesType type;
+  bool just_harvested_ = false;  // kOccupied → kGrowing
+  bool just_respawned_ = false;  // kGrowing → kReady
 
   //TODO : Add vertex of the resources (we need to have a ref to the vertices of the resource so we can update it when changing the state)
 

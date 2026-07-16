@@ -22,11 +22,15 @@ enum class ResourcesType {
   kWood,
   kStone,
   kFood,
+  kGrowingWood,
+  kGrowingStone,
+  kGrowingFood,
   kNone
 };
+
 namespace resource{
 constexpr float kTreeGrowingTime = 90.f;
-constexpr float kStoneGrowingTime = 150.f;
+constexpr float kStoneGrowingTime = 150.f; //TODO : change this to 150.f
 constexpr float kFoodGrowingTime = 120.f;
 
 constexpr int kWoodPerTreeAmount = 150;

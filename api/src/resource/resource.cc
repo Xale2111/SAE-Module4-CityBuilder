@@ -34,14 +34,15 @@ void Resource::NextState() {
       break;
     case ResourceState::kOccupied:
       current_state_ = ResourceState::kGrowing;
+      just_harvested_ = true;
       break;
     case ResourceState::kGrowing:
       current_state_ = ResourceState::kReady;
+      just_respawned_ = true;
       break;
   }
-
-
 }
+
 bool Resource::IsFullyGrow() {
   bool is_fully_grow = false;
   switch (type) {

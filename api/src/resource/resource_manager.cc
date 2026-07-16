@@ -16,11 +16,23 @@ void ResourceManager::SetResourceType(int index, ResourcesType newType) {
 }
 
 void ResourceManager::Update(float dt) {
-  for(auto& resource : resource_map_)
-  {
-    resource.Tick(dt);
+  harvested_this_frame_.clear();
+  respawned_this_frame_.clear();
+
+  for (int i = 0; i < static_cast<int>(resource_map_.size()); i++) {
+    resource_map_[i].Tick(dt);
+
+    if (resource_map_[i].just_harvested_) {
+      harvested_this_frame_.push_back(i);
+      resource_map_[i].just_harvested_ = false;
+    }
+    if (resource_map_[i].just_respawned_) {
+      respawned_this_frame_.push_back(i);
+      resource_map_[i].just_respawned_ = false;
+    }
   }
 }
+
 void ResourceManager::CollectResources(std::span<ResourcesType> collectedResources) {
 
   for (auto const& resource : collectedResources) {

@@ -114,6 +114,10 @@ void Tilemap::ReconstructMapAfterLoad(resource::ResourceManager &rscManager) {
     RebuildResources(pos, grid_offset_, resource.type);
   }
 
+  for (auto &building : placed_buildings_) {
+    RebuildBuilding(building.type, {static_cast<float>(building.x), static_cast<float>(building.y)});
+  }
+
   SetWalkablesBasedOnTiles();
 }
 
@@ -158,6 +162,50 @@ bool Tilemap::IsTileWalkable(sf::Vector2f world_position) const {
   if (col < 0 || col >= total_cols_ || row < 0 || row >= total_rows_) return false;
 
   return tiles_[get_tile_id(col, row)].is_walkable;
+}
+
+void Tilemap::OnResourceHarvested(int resource_index) {
+  auto &resource = resource_manager_->get_resources()[resource_index];
+  sf::Vector2f pos = {static_cast<float>(resource.get_pos().x),
+                      static_cast<float>(resource.get_pos().y)};
+
+  // Change la texture vers la version récoltée
+  ResourcesType new_type = resource.type;
+
+  switch (resource.type) {
+
+    case ResourcesType::kWood:
+      new_type = ResourcesType::kGrowingWood;
+      break;
+    case ResourcesType::kStone:
+      new_type = ResourcesType::kGrowingStone;
+      break;
+    case ResourcesType::kFood:
+      new_type = ResourcesType::kGrowingFood;
+      break;
+  }
+
+  if(resources_renderer_.UpdateTileTexture(pos,resources_tile_sheet_.GetBounds(new_type))) {
+    walkables_.push_back(resource.get_pos());
+  }
+  else
+  {
+    //DISPLAY ERROR
+  }
+}
+
+void Tilemap::OnResourceRespawned(int resource_index) {
+  auto &resource = resource_manager_->get_resources()[resource_index];
+  sf::Vector2f pos = {static_cast<float>(resource.get_pos().x),static_cast<float>(resource.get_pos().y)};
+
+  if(resources_renderer_.UpdateTileTexture(pos,resources_tile_sheet_.GetBounds(resource.type))) {
+    std::erase_if(walkables_, [&](const sf::Vector2i &w) {
+      return w.x == resource.get_pos().x && w.y == resource.get_pos().y;
+    });
+  }
+  else{
+    //DISPLAY ERROR
+  }
 }
 
 void Tilemap::Draw(sf::RenderWindow &window) {
@@ -215,7 +263,18 @@ void Tilemap::RebuildResources(sf::Vector2f pos, sf::Vector2f gridOffset, Resour
   int col = static_cast<int>(pos.x / gridOffset.x);
   int row = static_cast<int>(pos.y / gridOffset.y);
   tiles_[get_tile_id(col, row)].is_walkable = false;
+}
 
+void Tilemap::RebuildBuilding(DisplayableBuilding building_to_place, sf::Vector2f building_position)
+{
+  buildings_renderer_.AddTile(building_position, grid_offset_,
+                              buildings_tile_sheet_.GetBounds(building_to_place));
+
+  int col = static_cast<int>(building_position.x / grid_offset_.x);
+  int row = static_cast<int>(building_position.y / grid_offset_.y);
+  tiles_[get_tile_id(col, row)].is_walkable = false;
+  walkables_.push_back({static_cast<int>(tiles_[get_tile_id(col, row)].position.x),
+                        static_cast<int>(tiles_[get_tile_id(col, row)].position.y)});
 }
 
 bool Tilemap::InitGroundTileSheet() {
@@ -255,11 +314,16 @@ bool Tilemap::InitGroundTileSheet() {
   }
   return false;
 }
+
 bool Tilemap::InitResourcesTileSheet() {
   if (resources_tile_sheet_.InitTileSheet("_assets/resources.png", 512)) {
-    resources_tile_sheet_.AddTile(ResourcesType::kWood, 2, 0);
-    resources_tile_sheet_.AddTile(ResourcesType::kStone, 0, 1);
+    resources_tile_sheet_.AddTile(ResourcesType::kWood, 1, 0);
+    resources_tile_sheet_.AddTile(ResourcesType::kStone, 1, 1);
     resources_tile_sheet_.AddTile(ResourcesType::kFood, 1, 2);
+    resources_tile_sheet_.AddTile(ResourcesType::kGrowingWood, 0, 0);
+    resources_tile_sheet_.AddTile(ResourcesType::kGrowingStone, 0,1);
+    resources_tile_sheet_.AddTile(ResourcesType::kGrowingFood, 0, 2);
+
 
     resources_renderer_.SetTexture(resources_tile_sheet_.GetTexture());
     resources_renderer_.Clear();

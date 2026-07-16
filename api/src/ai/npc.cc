@@ -90,9 +90,7 @@ void Npc::Update(const float dt) {
   {
     current_picking_time_ += dt;
   }
-  if (bt_root_) {
-    bt_root_->Tick();
-  }
+
   if(path_status_ == PathStatus::kNoPath)
   {
     waited_time_before_asking_for_path_ += dt;
@@ -102,6 +100,9 @@ void Npc::Update(const float dt) {
       unreachable_tiles_.clear();
       std::println("Reset unreachable tiles");
     }
+  }
+  if (bt_root_) {
+    bt_root_->Tick();
   }
 }
 
@@ -206,10 +207,11 @@ core::ai::behaviour_tree::Status Npc::MoveToDestination() {
 }
 
 core::ai::behaviour_tree::Status Npc::AskForPath() {
-  if (path_status_ != PathStatus::kNoPath) {
-    need_path_ = true;
-    path_request_ = PathRequest::kResource;
+  if (path_status_ == PathStatus::kNoPath) {
+    return core::ai::behaviour_tree::Status::kRunning;
   }
+  need_path_ = true;
+  path_request_ = PathRequest::kResource;
   return core::ai::behaviour_tree::Status::kSuccess;
 }
 
