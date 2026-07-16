@@ -7,6 +7,8 @@
 #include "data_utils.h"
 #include <print>
 #include <tracy/Tracy.hpp>
+#include <unordered_map>
+#include <unordered_set>
 
 std::random_device r;
 std::default_random_engine rng_(r());
@@ -20,13 +22,7 @@ void Tilemap::Setup(resource::ResourceManager &rscManager, int seed) {
 
   InitTiles();
 
-  if (resources_tile_sheet_.InitTileSheet("_assets/resources.png", 512)) {
-    resources_tile_sheet_.AddTile(ResourcesType::kWood, 2, 0);
-    resources_tile_sheet_.AddTile(ResourcesType::kStone, 0, 1);
-    resources_tile_sheet_.AddTile(ResourcesType::kFood, 1, 2);
-
-    resources_renderer_.SetTexture(resources_tile_sheet_.GetTexture());
-    resources_renderer_.Clear();
+  if (InitResourcesTileSheet()) {
 
     FastNoiseLite noiseBiome;
     noiseBiome.SetNoiseType(FastNoiseLite::NoiseType_Cellular);
@@ -81,68 +77,63 @@ void Tilemap::Setup(resource::ResourceManager &rscManager, int seed) {
         }
       }
     }
-
-    for (auto &tile : tiles_) {
-      if (tile.is_walkable) {
-        walkables_.push_back({static_cast<int>(tile.position.x), static_cast<int>(tile.position.y)});
-      }
-    }
   }
 
-  if (ground_tile_sheet_.InitTileSheet("_assets/ground.png", 512)) {
-    ground_tile_sheet_.AddTile(BackgroundTiles::kGround, 0, 0);
-    ground_tile_sheet_.AddTile(BackgroundTiles::kGrass, 3, 0);
-    ground_tile_sheet_.AddTile(BackgroundTiles::kFlowerOne, 1, 0);
-    ground_tile_sheet_.AddTile(BackgroundTiles::kFlowerTwo, 2, 0);
-
-    FastNoiseLite noise;
-    noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
-    noise.SetSeed(1337);
-    noise.SetFrequency(0.01f);
-
-    ground_renderer_.SetTexture(ground_tile_sheet_.GetTexture());
-    ground_renderer_.Clear();
-
-    for (int col = 0; col < total_cols_; col++) {
-      for (int row = 0; row < total_rows_; row++) {
-        sf::Vector2f pos = {col * grid_offset_.x, row * grid_offset_.y};
-        float noiseValue = std::abs(noise.GetNoise(pos.x, pos.y));
-
-        if (noiseValue <= .2f) {
-          ground_renderer_.AddTile(pos, grid_offset_, ground_tile_sheet_.GetBounds(BackgroundTiles::kGround));
-        } else if (noiseValue <= .5f) {
-          ground_renderer_.AddTile(pos, grid_offset_, ground_tile_sheet_.GetBounds(BackgroundTiles::kGrass));
-        } else {
-          std::uniform_int_distribution<int> dist(0, 2);
-          if (dist(rng_) % 2 == 0)
-            ground_renderer_.AddTile(pos, grid_offset_, ground_tile_sheet_.GetBounds(BackgroundTiles::kFlowerOne));
-          else
-            ground_renderer_.AddTile(pos, grid_offset_, ground_tile_sheet_.GetBounds(BackgroundTiles::kFlowerTwo));
-        }
-      }
-    }
+  if (!InitGroundTileSheet()) {
+    //DISPLAY ERROR
   }
 
-  if (buildings_tile_sheet_.InitTileSheet("_assets/buildings.png", 512)) {
-    buildings_tile_sheet_.AddTile(DisplayableBuilding::kFoodHouse, 0, 0);
-    buildings_tile_sheet_.AddTile(DisplayableBuilding::kLumberjackHouse, 1, 0);
-    buildings_tile_sheet_.AddTile(DisplayableBuilding::kMineHouse, 2, 0);
-    buildings_tile_sheet_.AddTile(DisplayableBuilding::kCanteen, 3, 0);
-
-    buildings_renderer_.SetTexture(buildings_tile_sheet_.GetTexture());
-    buildings_renderer_.Clear();
+  if (!InitBuildingTileSheet()) {
+    //DISPLAY ERROR
   }
 
+  SetWalkablesBasedOnTiles();
+}
+
+void Tilemap::ReconstructMapAfterLoad(resource::ResourceManager &rscManager) {
+  tiles_.resize(total_cols_ * total_rows_);
+  walkables_.reserve(total_cols_ * total_rows_);
+
+  resource_manager_ = &rscManager;
+
+  InitReconstructedTiles();
+
+  if (!InitResourcesTileSheet()) {
+    //DISPLAY ERROR
+  }
+  if (!InitGroundTileSheet()) {
+    //DISPLAY ERROR
+  }
+  if (!InitBuildingTileSheet()) {
+    //DISPLAY ERROR
+  }
+
+  for (auto &resource : resource_manager_->get_resources()) {
+    if (resource.type == ResourcesType::kNone) continue;
+    sf::Vector2f pos = {static_cast<float>(resource.get_pos().x), static_cast<float>(resource.get_pos().y)};
+    RebuildResources(pos, grid_offset_, resource.type);
+  }
+
+  SetWalkablesBasedOnTiles();
 }
 
 void Tilemap::InitTiles() {
+  for (int row = 0; row < total_rows_; row++) {
+    for (int col = 0; col < total_cols_; col++) {
+      int id = get_tile_id(col, row);
+      tiles_[id].position = {col * grid_offset_.x, row * grid_offset_.y};
+      tiles_[id].is_walkable = true;
+      resource_manager_->AddResource({col * DataUtils::kTileSize, row * DataUtils::kTileSize}, ResourcesType::kNone);
+    }
+  }
+}
+
+void Tilemap::InitReconstructedTiles() {
   for (int col = 0; col < total_cols_; col++) {
     for (int row = 0; row < total_rows_; row++) {
       int id = get_tile_id(col, row);
       tiles_[id].position = {col * grid_offset_.x, row * grid_offset_.y};
       tiles_[id].is_walkable = true;
-      resource_manager_->AddResource({col * DataUtils::kTileSize, row * DataUtils::kTileSize}, ResourcesType::kNone);
-
     }
   }
 }
@@ -185,7 +176,8 @@ void Tilemap::AddBuilding(DisplayableBuilding building_to_place, sf::Vector2f bu
   walkables_.push_back({static_cast<int>(tiles_[get_tile_id(col, row)].position.x),
                         static_cast<int>(tiles_[get_tile_id(col, row)].position.y)});
 
-  placed_buildings_.push_back({building_to_place, static_cast<int>(building_position.x), static_cast<int>(building_position.y)});
+  placed_buildings_.push_back({building_to_place, static_cast<int>(building_position.x),
+                               static_cast<int>(building_position.y)});
 }
 
 int Tilemap::get_sample_index(int sampleSize, int percent) const {
@@ -218,3 +210,80 @@ void Tilemap::AddResourcesTileBasedOnBiome(sf::Vector2f pos, sf::Vector2f gridOf
   }
 }
 
+void Tilemap::RebuildResources(sf::Vector2f pos, sf::Vector2f gridOffset, ResourcesType type) {
+  resources_renderer_.AddTile(pos, gridOffset, resources_tile_sheet_.GetBounds(type));
+  int col = static_cast<int>(pos.x / gridOffset.x);
+  int row = static_cast<int>(pos.y / gridOffset.y);
+  tiles_[get_tile_id(col, row)].is_walkable = false;
+
+}
+
+bool Tilemap::InitGroundTileSheet() {
+  if (ground_tile_sheet_.InitTileSheet("_assets/ground.png", 512)) {
+    ground_tile_sheet_.AddTile(BackgroundTiles::kGround, 0, 0);
+    ground_tile_sheet_.AddTile(BackgroundTiles::kGrass, 3, 0);
+    ground_tile_sheet_.AddTile(BackgroundTiles::kFlowerOne, 1, 0);
+    ground_tile_sheet_.AddTile(BackgroundTiles::kFlowerTwo, 2, 0);
+
+    FastNoiseLite noise;
+    noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
+    noise.SetSeed(1337);
+    noise.SetFrequency(0.01f);
+
+    ground_renderer_.SetTexture(ground_tile_sheet_.GetTexture());
+    ground_renderer_.Clear();
+
+    for (int col = 0; col < total_cols_; col++) {
+      for (int row = 0; row < total_rows_; row++) {
+        sf::Vector2f pos = {col * grid_offset_.x, row * grid_offset_.y};
+        float noiseValue = std::abs(noise.GetNoise(pos.x, pos.y));
+
+        if (noiseValue <= .2f) {
+          ground_renderer_.AddTile(pos, grid_offset_, ground_tile_sheet_.GetBounds(BackgroundTiles::kGround));
+        } else if (noiseValue <= .5f) {
+          ground_renderer_.AddTile(pos, grid_offset_, ground_tile_sheet_.GetBounds(BackgroundTiles::kGrass));
+        } else {
+          std::uniform_int_distribution<int> dist(0, 2);
+          if (dist(rng_) % 2 == 0)
+            ground_renderer_.AddTile(pos, grid_offset_, ground_tile_sheet_.GetBounds(BackgroundTiles::kFlowerOne));
+          else
+            ground_renderer_.AddTile(pos, grid_offset_, ground_tile_sheet_.GetBounds(BackgroundTiles::kFlowerTwo));
+        }
+      }
+    }
+    return true;
+  }
+  return false;
+}
+bool Tilemap::InitResourcesTileSheet() {
+  if (resources_tile_sheet_.InitTileSheet("_assets/resources.png", 512)) {
+    resources_tile_sheet_.AddTile(ResourcesType::kWood, 2, 0);
+    resources_tile_sheet_.AddTile(ResourcesType::kStone, 0, 1);
+    resources_tile_sheet_.AddTile(ResourcesType::kFood, 1, 2);
+
+    resources_renderer_.SetTexture(resources_tile_sheet_.GetTexture());
+    resources_renderer_.Clear();
+    return true;
+  }
+  return false;
+}
+bool Tilemap::InitBuildingTileSheet() {
+  if (buildings_tile_sheet_.InitTileSheet("_assets/buildings.png", 512)) {
+    buildings_tile_sheet_.AddTile(DisplayableBuilding::kFoodHouse, 0, 0);
+    buildings_tile_sheet_.AddTile(DisplayableBuilding::kLumberjackHouse, 1, 0);
+    buildings_tile_sheet_.AddTile(DisplayableBuilding::kMineHouse, 2, 0);
+    buildings_tile_sheet_.AddTile(DisplayableBuilding::kCanteen, 3, 0);
+
+    buildings_renderer_.SetTexture(buildings_tile_sheet_.GetTexture());
+    buildings_renderer_.Clear();
+    return true;
+  }
+  return false;
+}
+void Tilemap::SetWalkablesBasedOnTiles() {
+  for (auto &tile : tiles_) {
+    if (tile.is_walkable) {
+      walkables_.push_back({static_cast<int>(tile.position.x), static_cast<int>(tile.position.y)});
+    }
+  }
+}

@@ -186,7 +186,7 @@ core::ai::behaviour_tree::Status Npc::MoveToDestination() {
   }
 
   if (path_.empty()) {
-    return core::ai::behaviour_tree::Status::kSuccess;
+    return core::ai::behaviour_tree::Status::kFailure;
   }
 
   if (motor_.RemainingDistance() <= 0.01f) {
@@ -223,6 +223,7 @@ core::ai::behaviour_tree::Status Npc::PickUp() {
   current_working_state_ = WorkingState::kPickingUp;
   if (current_picking_time_ >= kPickingUpTime) {
     current_working_state_ = WorkingState::kFinished;
+    current_picking_time_ = 0.f;
     brought_back_resource_home = true;
     return core::ai::behaviour_tree::Status::kSuccess;
   }

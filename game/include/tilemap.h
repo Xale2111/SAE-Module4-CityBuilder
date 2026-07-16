@@ -27,6 +27,7 @@ enum class BackgroundTiles {
 class Tilemap {
  public:
   void Setup(resource::ResourceManager& rscManager, int seed = 1067);
+  void ReconstructMapAfterLoad(resource::ResourceManager& rscManager);
   void Draw(sf::RenderWindow &window);
   void AddBuilding(DisplayableBuilding building_to_place, sf::Vector2f building_position);
 
@@ -38,6 +39,8 @@ class Tilemap {
   [[nodiscard]] bool IsTileWalkable(sf::Vector2f world_position) const;
 
   [[nodiscard]] std::span<const BuildingInfos> get_placed_buildings() {return placed_buildings_;} ;
+  [[nodiscard]] std::vector<BuildingInfos>& get_placed_buildings_ref() {return placed_buildings_;} ;
+
 
   //void DebugWalkable();
 
@@ -62,6 +65,15 @@ class Tilemap {
   [[nodiscard]] int get_sample_index(int sampleSize, int percent) const;
   void AddResourcesTileBasedOnBiome(sf::Vector2f pos, sf::Vector2f gridOffset, Biome::Biome biome);
   void InitTiles();
+  void InitReconstructedTiles();
+
+
+  void RebuildResources(sf::Vector2f pos, sf::Vector2f gridOffset, ResourcesType type);
+
+  bool InitGroundTileSheet();
+  bool InitResourcesTileSheet();
+  bool InitBuildingTileSheet();
+  void SetWalkablesBasedOnTiles();
 
 };
 

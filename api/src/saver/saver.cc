@@ -7,19 +7,16 @@
 #include <fstream>
 #include <iostream>
 #include <filesystem>
+#include "data_utils.h"
 
 namespace saver {
 
 void Saver::SaveGame(ResourceAmounts playerResources,
                      std::span<const resource::Resource> resourceMap,
-                     std::span<const BuildingInfos> placedBuildings,
-                     const std::string& filename) {
-  
+                     std::span<const BuildingInfos> placedBuildings) {
 
   std::filesystem::create_directories("saves");
-  
-  std::string savePath = "saves/" + filename;
-  
+
   nlohmann::json saveData;
 
   saveData["version"] = "1.0";
@@ -36,56 +33,63 @@ void Saver::SaveGame(ResourceAmounts playerResources,
       std::cerr << "Couldn't open the file " << savePath << " to write\n";
       return;
     }
-    
+
     file << saveData.dump(4);
     file.close();
-    
-  } catch (const std::exception& e) {
+
+  } catch (const std::exception &e) {
     std::cerr << "Error during save: " << e.what() << "\n";
   }
 }
 
-bool Saver::LoadGame(ResourceAmounts& playerResources,
-                     std::vector<resource::Resource>& resourceMap,
-                     std::vector<BuildingInfos>& placedBuildings,
-                     const std::string& filename) {
-  
-  try {
-    std::ifstream file(filename);
-    if (!file.is_open()) {
-      std::cerr << "No save file found in " << filename << "\n";
-      return false;
-    }
-    
-    nlohmann::json saveData;
-    file >> saveData;
-    file.close();
-    
+bool Saver::LoadGame(int &collectedWood, int &collectedStone, int &collectedFood,
+                     std::vector<resource::Resource> &resourceMap,
+                     std::vector<BuildingInfos> &placedBuildings) {
 
-    if (saveData.contains("version")) {
-      std::string version = saveData["version"];
-      std::cout << "Loading save version " << version << "\n";
-    }
-
-    if (saveData.contains("player_resources")) {
-      DeserializePlayerResources(playerResources, saveData["player_resources"]);
-    }
-
-    if (saveData.contains("world_resources")) {
-      DeserializeWorldResources(resourceMap, saveData["world_resources"]);
-    }
-
-    if (saveData.contains("buildings")) {
-      DeserializeBuildings(placedBuildings, saveData["buildings"]);
-    }
-    
-    
-    return true;
-    
-  } catch (const std::exception& e) {
-    std::cerr << "Error during loading: " << e.what() << "\n";
+  std::ifstream file(savePath);
+  if (!file.is_open()) {
+    std::cerr << "No save file found in " << savePath << "\n";
     return false;
   }
+
+  nlohmann::json saveData;
+  try {
+    file >> saveData;
+    file.close();
+  }
+  catch (const std::exception &e) {
+    return false;
+  }
+  if(saveData.empty())
+  {
+    return false;
+  }
+
+  if (saveData.contains("version")) {
+    std::string version = saveData["version"];
+    std::cout << "Loading save version " << version << "\n";
+  } else {
+    return false;
+  }
+
+  if (saveData.contains("player_resources")) {
+    DeserializePlayerResources(collectedWood, collectedStone, collectedFood, saveData["player_resources"]);
+  } else {
+    return false;
+  }
+
+  if (saveData.contains("world_resources")) {
+    DeserializeWorldResources(resourceMap, saveData["world_resources"]);
+  } else {
+    return false;
+  }
+
+  if (saveData.contains("buildings")) {
+    DeserializeBuildings(placedBuildings, saveData["buildings"]);
+  } else {
+    return false;
+  }
+  return true;
 }
 
 nlohmann::json Saver::SerializePlayerResources(ResourceAmounts playerResources) {
@@ -98,73 +102,102 @@ nlohmann::json Saver::SerializePlayerResources(ResourceAmounts playerResources) 
 
 nlohmann::json Saver::SerializeWorldResources(std::span<const resource::Resource> resourceMap) {
   nlohmann::json worldRes = nlohmann::json::array();
-  
-  for (const auto& resource : resourceMap) {
+
+  for (const auto &resource : resourceMap) {
+    if (resource.type == ResourcesType::kNone) {
+      continue;
+    }
     nlohmann::json res;
     res["type"] = static_cast<int>(resource.type);
-    res["state"] = static_cast<int>(resource.get_state());
+    switch (resource.get_state()) {
+      case ResourceState::kGrowing:res["state"] = static_cast<int>(ResourceState::kGrowing);
+        break;
+      case ResourceState::kReady:
+      case ResourceState::kOccupied:
+      default:res["state"] = static_cast<int>(ResourceState::kReady);
+        break;
+    }
     res["x"] = resource.get_pos().x;
     res["y"] = resource.get_pos().y;
-    
+
     worldRes.push_back(res);
   }
-  
+
   return worldRes;
 }
 
 nlohmann::json Saver::SerializeBuildings(std::span<const BuildingInfos> placedBuildings) {
   nlohmann::json buildings = nlohmann::json::array();
-  
-  for (const auto& building : placedBuildings) {
+
+  for (const auto &building : placedBuildings) {
     nlohmann::json b;
     b["type"] = static_cast<int>(building.type);
     b["x"] = building.x;
     b["y"] = building.y;
-    
+
     buildings.push_back(b);
   }
-  
+
   return buildings;
 }
 
-void Saver::DeserializePlayerResources(ResourceAmounts& playerResources, const nlohmann::json& json) {
+void Saver::DeserializePlayerResources(int &collectedWood,
+                                       int &collectedStone,
+                                       int &collectedFood,
+                                       const nlohmann::json &json) {
   if (json.contains("wood")) {
-    playerResources.wood = json["wood"].get<int>();
+    collectedWood = json["wood"].get<int>();
   }
   if (json.contains("stone")) {
-    playerResources.stone = json["stone"].get<int>();
+    collectedStone = json["stone"].get<int>();
   }
   if (json.contains("food")) {
-    playerResources.food = json["food"].get<int>();
+    collectedFood = json["food"].get<int>();
   }
 }
 
-void Saver::DeserializeWorldResources(std::vector<resource::Resource>& resourceMap, const nlohmann::json& json) {
+void Saver::DeserializeWorldResources(std::vector<resource::Resource> &resourceMap, const nlohmann::json &json) {
   resourceMap.clear();
-  
-  for (const auto& resJson : json) {
-    ResourcesType type = static_cast<ResourcesType>(resJson["type"].get<int>());
-    ResourceState state = static_cast<ResourceState>(resJson["state"].get<int>());
+  resourceMap.reserve(DataUtils::kTilemapWidth * DataUtils::kTilemapHeight);
+
+  for (int col = 0; col < DataUtils::kTilemapWidth; col++) {
+    for (int row = 0; row < DataUtils::kTilemapHeight; row++) {
+      int world_x = col * DataUtils::kTileSize;
+      int world_y = row * DataUtils::kTileSize;
+      resourceMap.emplace_back(sf::Vector2i(world_x, world_y), ResourcesType::kNone);
+    }
+  }
+
+  for (const auto &resJson : json) {
     int x = resJson["x"].get<int>();
     int y = resJson["y"].get<int>();
+    ResourcesType type = static_cast<ResourcesType>(resJson["type"].get<int>());
 
-    resource::Resource res(sf::Vector2i(x, y), type);
-    
-    resourceMap.push_back(res);
+    int col = x / DataUtils::kTileSize;
+    int row = y / DataUtils::kTileSize;
+
+    int id = row * DataUtils::kTilemapWidth + col;
+
+    if (id >= 0 && id < resourceMap.size()) {
+      resourceMap[id] = resource::Resource(sf::Vector2i(x, y), type);
+    }
   }
 }
 
-void Saver::DeserializeBuildings(std::vector<BuildingInfos>& placedBuildings, const nlohmann::json& json) {
+void Saver::DeserializeBuildings(std::vector<BuildingInfos> &placedBuildings, const nlohmann::json &json) {
   placedBuildings.clear();
-  
-  for (const auto& buildingJson : json) {
+
+  for (const auto &buildingJson : json) {
     BuildingInfos building;
     building.type = static_cast<DisplayableBuilding>(buildingJson["type"].get<int>());
     building.x = buildingJson["x"].get<int>();
     building.y = buildingJson["y"].get<int>();
-    
+
     placedBuildings.push_back(building);
   }
+}
+bool Saver::DoesSaveFileExists() {
+  return std::filesystem::exists(savePath);
 }
 
 } // namespace saver

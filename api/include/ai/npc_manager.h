@@ -21,7 +21,8 @@ class NpcManager {
   void Update(float dt);
   void UpdatePath(std::span<sf::Vector2i> walkables,std::vector<resource::Resource>& resourceMap);
   void Draw(sf::RenderWindow& window);
-  [[nodiscard]] const std::span<ResourcesType> get_collected_resources()  {return collected_resources_;};
+  [[nodiscard]] std::span<ResourcesType> get_collected_resources(){return collected_resources_;};
+  void Reset();
 
  private:
   sf::Texture npc_textures_;

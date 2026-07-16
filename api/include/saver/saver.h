@@ -21,22 +21,25 @@ class Saver {
  public :
   void SaveGame(ResourceAmounts playerResources,
                 std::span<const resource::Resource> resourceMap,
-                std::span<const BuildingInfos> placedBuildings,
-                const std::string &filename = "savegame.json");
+                std::span<const BuildingInfos> placedBuildings);
 
-  bool LoadGame(ResourceAmounts &playerResources,
+  bool LoadGame(int& collectedWood, int& collectedStone, int& collectedFood,
                 std::vector<resource::Resource> &resourceMap,
-                std::vector<BuildingInfos> &placedBuildings,
-                const std::string &filename = "savegame.json");
+                std::vector<BuildingInfos> &placedBuildings);
+
+  bool DoesSaveFileExists();
 
  private:
   nlohmann::json SerializePlayerResources(ResourceAmounts playerResources);
   nlohmann::json SerializeWorldResources(std::span<const resource::Resource> resourceMap);
   nlohmann::json SerializeBuildings(std::span<const BuildingInfos> placedBuildings);
 
-  void DeserializePlayerResources(ResourceAmounts &playerResources, const nlohmann::json &json);
+  void DeserializePlayerResources(int& collectedWood, int& collectedStone, int& collectedFood, const nlohmann::json &json);
   void DeserializeWorldResources(std::vector<resource::Resource> &resourceMap, const nlohmann::json &json);
   void DeserializeBuildings(std::vector<BuildingInfos> &placedBuildings, const nlohmann::json &json);
+
+  const std::string savePath = "saves/savegame.json";
+
 
 };
 }

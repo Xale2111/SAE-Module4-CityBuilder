@@ -67,7 +67,7 @@ void NpcManager::UpdatePath(std::span<sf::Vector2i> walkables, std::vector<resou
 
     //resource management
     auto resIndex = npc->TryToFreeResource();
-    if (resIndex > 0)
+    if (resIndex >= 0)
     {
       resourceMap[resIndex].NextState();
     }
@@ -78,6 +78,10 @@ void NpcManager::Draw(sf::RenderWindow &window) {
   for (auto &npc : npcs_) {
     npc->Draw(window);
   }
+}
+void NpcManager::Reset() {
+  npcs_.clear();
+  collected_resources_.clear();
 }
 
 }

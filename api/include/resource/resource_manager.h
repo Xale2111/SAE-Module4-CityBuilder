@@ -37,14 +37,22 @@ class ResourceManager {
   [[nodiscard]] int get_wood_amount() const {return amount_of_collected_wood_;};
   [[nodiscard]] int get_stone_amount() const {return amount_of_collected_stone_;};
   [[nodiscard]] int get_food_amount() const {return amount_of_collected_food_;};
+  [[nodiscard]] int& get_wood_amount_ref() {return amount_of_collected_wood_;};
+  [[nodiscard]] int& get_stone_amount_ref() {return amount_of_collected_stone_;};
+  [[nodiscard]] int& get_food_amount_ref() {return amount_of_collected_food_;};
   [[nodiscard]] ResourceAmounts get_all_resources_amount() const {return {amount_of_collected_wood_,amount_of_collected_stone_,amount_of_collected_food_};};
+
 
 
  private:
   std::vector<Resource> resource_map_;
-  int amount_of_collected_wood_ = 0;
+  /*int amount_of_collected_wood_ = 0;
   int amount_of_collected_stone_= building::kLumberjackNeededStoneAmount.amount_;
-  int amount_of_collected_food_ = building::kLumberjackNeededFoodAmount.amount_;
+  int amount_of_collected_food_ = building::kLumberjackNeededFoodAmount.amount_;*/
+
+  int amount_of_collected_wood_ = 50000;
+  int amount_of_collected_stone_= 50000;
+  int amount_of_collected_food_ = 50000;
 };
 }
 #endif //SAE_ALEXK_CITYBUILDER_API_SRC_RESOURCE_RESOURCEMANAGER_H_

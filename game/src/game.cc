@@ -40,23 +40,22 @@ void Setup() {
 
   // Create the main window
   //window_.create(sf::VideoMode({1920, 1080}), "City Builder de fou malade avec des explosions !!",sf::State::Fullscreen);
-  window_.create(sf::VideoMode({DataUtils::kScreenWidth, DataUtils::kScreenHeight}),
-                 "City Builder de fou malade avec des explosions !!");
+  window_.create(sf::VideoMode({DataUtils::kScreenWidth, DataUtils::kScreenHeight}),"City Builder de fou malade avec des explosions !!");
+  //window_.create(sf::VideoMode({DataUtils::kScreenWidth, DataUtils::kScreenHeight}),"City Builder de fou malade avec des explosions !!",sf::State::Fullscreen);
 
   srand(time(0));
-
-  tilemap_.Setup(resource_manager_);
 
   camera_.SetupView({DataUtils::kScreenWidth, DataUtils::kScreenHeight}, {realMapWidth / 2.0f, realMapHeight / 2.0f});
 
   //npc_manager_.SpawnNpc(NpcType::kGatherer,{realMapWidth / 2.0f, realMapHeight / 2.0f});
   //npc_manager_.SpawnNpc(NpcType::kLumberjack,{realMapWidth / 2.0f, realMapHeight / 2.0f});
 
-
+  npc_manager_.Reset();
 
 }
 
 ActionCode LoopMenu() {
+
   mainMenu_.Init(window_);
   ActionCode actionValue = ActionCode::kMenu;
 
@@ -86,10 +85,15 @@ ActionCode LoopMenu() {
 }
 
 ActionCode LoopGame() {
-  //if (!saver_.LoadGame(resource_manager_.get_all_resources_amount(),resource_manager_.get_resources(),tilemap_.get_placed_buildings())) {
-  //}
-  Setup();
+    Setup();
+  if (saver_.DoesSaveFileExists() && saver_.LoadGame(resource_manager_.get_wood_amount_ref(),resource_manager_.get_stone_amount_ref(),resource_manager_.get_food_amount_ref(),resource_manager_.get_resources_ref(),tilemap_.get_placed_buildings_ref())) {
+    tilemap_.ReconstructMapAfterLoad(resource_manager_);
+  } else {
+    tilemap_.Setup(resource_manager_);
+    saver_.SaveGame(resource_manager_.get_all_resources_amount(),resource_manager_.get_resources(),tilemap_.get_placed_buildings());
+  }
   build_menu_.Init();
+
 
   float delay = 0.0f;
   float time = 0.0f;
@@ -125,7 +129,9 @@ ActionCode LoopGame() {
     while (const std::optional event = window_.pollEvent()) {
       // Close window: exit
       if (event->is<sf::Event::Closed>()) {
-        saver_.SaveGame(resource_manager_.get_all_resources_amount(),resource_manager_.get_resources(),tilemap_.get_placed_buildings());
+        saver_.SaveGame(resource_manager_.get_all_resources_amount(),
+                        resource_manager_.get_resources(),
+                        tilemap_.get_placed_buildings());
         build_menu_.ResetMenu();
         window_.close();
       }
