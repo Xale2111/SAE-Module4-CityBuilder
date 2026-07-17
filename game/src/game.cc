@@ -40,9 +40,8 @@ void Setup() {
 
   // Create the main window
   //window_.create(sf::VideoMode({1920, 1080}), "City Builder de fou malade avec des explosions !!",sf::State::Fullscreen);
-  window_.create(sf::VideoMode({DataUtils::kScreenWidth, DataUtils::kScreenHeight}),
-                 "City Builder de fou malade avec des explosions !!");
-  //window_.create(sf::VideoMode({DataUtils::kScreenWidth, DataUtils::kScreenHeight}),"City Builder de fou malade avec des explosions !!",sf::State::Fullscreen);
+  //window_.create(sf::VideoMode({DataUtils::kScreenWidth, DataUtils::kScreenHeight}),"City Builder de fou malade avec des explosions !!");
+  window_.create(sf::VideoMode({DataUtils::kScreenWidth, DataUtils::kScreenHeight}),"City Builder de fou malade avec des explosions !!",sf::State::Fullscreen);
 
   srand(time(0));
 
@@ -182,8 +181,8 @@ ActionCode LoopGame() {
 
     resource_manager_.CollectResources(npc_manager_.get_collected_resources());
 
-    npc_manager_.UpdatePath(tilemap_.get_walkables(), resource_manager_.get_resources_ref());
     npc_manager_.Update(dt);
+    npc_manager_.UpdatePath(tilemap_.get_walkables(), resource_manager_.get_resources_ref());
 
     build_menu_.UpdateWoodValue(resource_manager_.get_wood_amount());
     build_menu_.UpdateStoneValue(resource_manager_.get_stone_amount());

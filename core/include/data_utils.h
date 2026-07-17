@@ -30,7 +30,7 @@ enum class ResourcesType {
 
 namespace resource{
 constexpr float kTreeGrowingTime = 90.f;
-constexpr float kStoneGrowingTime = 150.f; //TODO : change this to 150.f
+constexpr float kStoneGrowingTime = 150.f;
 constexpr float kFoodGrowingTime = 120.f;
 
 constexpr int kWoodPerTreeAmount = 150;
@@ -83,8 +83,8 @@ struct DataUtils {
   static constexpr int kScreenHeight = 1080;
 
   //wanted size is 400x400
-  static constexpr int kTilemapWidth = 400;
-  static constexpr int kTilemapHeight = 400;
+  static constexpr int kTilemapWidth = 10;
+  static constexpr int kTilemapHeight = 10;
   static constexpr int kTileSize = 64;
 
 };

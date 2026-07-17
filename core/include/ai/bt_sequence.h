@@ -14,18 +14,21 @@ class SequenceNode : public CompositeNode {
   ~SequenceNode() override = default;
   void Reset() override { currentChild_ = 0; };
   Status Tick() override {
-    Status childStatus = children_[currentChild_]->Tick();
+    while (currentChild_ < static_cast<int>(children_.size())) {
+      Status childStatus = children_[currentChild_]->Tick();
 
-    if (childStatus == Status::kSuccess) {
-      currentChild_++;
-      if (currentChild_ >= children_.size()) {
+      if (childStatus == Status::kSuccess) {
+        currentChild_++;
+      } else if (childStatus == Status::kFailure) {
         Reset();
-        return Status::kSuccess;
+        return Status::kFailure;
+      } else {
+        return Status::kRunning;
       }
-      return Tick();
     }
-    return childStatus;
-  };
+    Reset();
+    return Status::kSuccess;
+  }
 
 };
 

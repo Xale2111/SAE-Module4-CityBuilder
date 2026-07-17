@@ -23,6 +23,7 @@ class Resource {
   void Tick(float dt);
   [[nodiscard]] sf::Vector2i get_pos() const { return pos_; }
   [[nodiscard]] ResourceState get_state() const { return current_state_; }
+  void set_state(ResourceState state);
   void NextState();
 
   ResourcesType type;
@@ -35,7 +36,7 @@ class Resource {
   sf::Vector2i pos_;
   ResourceState current_state_;
   float current_growing_time_ = 0.f;
-  bool IsFullyGrow();
+  bool IsFullyGrow() const;
 };
 }
 #endif //SAE_ALEXK_CITYBUILDER_API_INCLUDE_RESOURCE_RESOURCE_H_

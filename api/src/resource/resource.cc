@@ -34,6 +34,7 @@ void Resource::NextState() {
       break;
     case ResourceState::kOccupied:
       current_state_ = ResourceState::kGrowing;
+      current_growing_time_ = 0.f;
       just_harvested_ = true;
       break;
     case ResourceState::kGrowing:
@@ -43,7 +44,7 @@ void Resource::NextState() {
   }
 }
 
-bool Resource::IsFullyGrow() {
+bool Resource::IsFullyGrow() const {
   bool is_fully_grow = false;
   switch (type) {
     case ResourcesType::kWood:
@@ -59,5 +60,12 @@ bool Resource::IsFullyGrow() {
   }
 
   return is_fully_grow;
+}
+void Resource::set_state(ResourceState state) {
+  if (state == ResourceState::kGrowing && current_state_ == ResourceState::kOccupied)
+    just_harvested_ = true;
+  if (state == ResourceState::kReady && current_state_ == ResourceState::kGrowing)
+    just_respawned_ = true;
+  current_state_ = state;
 }
 }

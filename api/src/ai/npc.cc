@@ -101,6 +101,7 @@ void Npc::Update(const float dt) {
       std::println("Reset unreachable tiles");
     }
   }
+
   if (bt_root_) {
     bt_root_->Tick();
   }
@@ -207,17 +208,16 @@ core::ai::behaviour_tree::Status Npc::MoveToDestination() {
 }
 
 core::ai::behaviour_tree::Status Npc::AskForPath() {
-  if (path_status_ == PathStatus::kNoPath) {
-    return core::ai::behaviour_tree::Status::kRunning;
-  }
   need_path_ = true;
   path_request_ = PathRequest::kResource;
+  path_status_ = PathStatus::kNone;
   return core::ai::behaviour_tree::Status::kSuccess;
 }
 
 core::ai::behaviour_tree::Status Npc::GoBackHome() {
   need_path_ = true;
   path_request_ = PathRequest::kHome;
+  path_status_ = PathStatus::kNone;
   return core::ai::behaviour_tree::Status::kSuccess;
 }
 
@@ -249,7 +249,7 @@ PathStatus const Npc::TryToGetPathToClosestResource(std::vector<resource::Resour
   if (!path.empty()) {
     set_path(path);
     //If path is possible, set the resource to occupied, set the current resource index the npc is working on and reset timer
-    resourcesPosition[closest_resource.index].NextState();
+    resourcesPosition[closest_resource.index].set_state(ResourceState::kOccupied);
     current_working_resource_index_ = closest_resource.index;
     current_picking_time_ = 0.f;
     path_status_ = PathStatus::kFound;
@@ -279,7 +279,9 @@ int Npc::TryToFreeResource() {
   if(current_working_state_ == WorkingState::kFinished)
   {
     current_working_state_ = WorkingState::kWalking;
-    return current_working_resource_index_;
+    int index = current_working_resource_index_;
+    current_working_resource_index_ = -1;
+    return index;
   }
   return -1;
 }

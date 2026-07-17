@@ -45,32 +45,32 @@ void NpcManager::Update(float dt) {
 void NpcManager::UpdatePath(std::span<sf::Vector2i> walkables, std::vector<resource::Resource>& resourceMap) {
   current_npc_astar_ = 0;
   for (auto &npc : npcs_) {
-    //Path management
+
+    // Path management
     if (current_npc_astar_ < max_npc_astar_) {
       current_npc_astar_++;
+
       if (npc->need_path_) {
         if (npc->path_request_ == PathRequest::kResource) {
-          //Could not get a path, canceling the request
-          if (npc->TryToGetPathToClosestResource(resourceMap, graph_, walkables) != PathStatus::kNoPath) {
-            npc->need_path_ = false;
-            npc->path_request_ = PathRequest::kNone;
-            continue;
-          }
-        } else {
-          npc->set_path(graph_.GetPath(npc->get_current_position(), npc->get_house_position(), npc->path_request_,
-                                       npc->get_max_steps_astar(), walkables));
+          auto status = npc->TryToGetPathToClosestResource(resourceMap, graph_, walkables);
+          npc->need_path_ = false;
+          npc->path_request_ = PathRequest::kNone;
+          if (status != PathStatus::kNoPath) continue;
+
+        } else { // kHome
+          auto path = graph_.GetPath(npc->get_current_position(), npc->get_house_position(),
+                                     npc->path_request_, npc->get_max_steps_astar(), walkables);
+          npc->set_path(path);
+          npc->need_path_ = false;
+          npc->path_request_ = PathRequest::kNone;
         }
-        npc->need_path_ = false;
-        npc->path_request_ = PathRequest::kNone;
       }
     }
 
-    //resource management
+    // Resource management
     auto resIndex = npc->TryToFreeResource();
-    if (resIndex >= 0)
-    {
-      resourceMap[resIndex].NextState();
-      //NEED TO CHANGE RES VISUAL
+    if (resIndex >= 0) {
+      resourceMap[resIndex].set_state(ResourceState::kGrowing); // kOccupied → kGrowing
     }
   }
 }

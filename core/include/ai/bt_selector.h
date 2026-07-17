@@ -13,18 +13,21 @@ class SelectorNode : public CompositeNode {
   ~SelectorNode() override = default;
   void Reset() override { currentChild_ = 0; };
   Status Tick() override {
-    Status childStatus = children_[currentChild_]->Tick();
+    while (currentChild_ < static_cast<int>(children_.size())) {
+      Status childStatus = children_[currentChild_]->Tick();
 
-    if (childStatus == Status::kFailure) {
-      currentChild_++;
-      if (currentChild_ >= children_.size()) {
+      if (childStatus == Status::kFailure) {
+        currentChild_++;
+      } else if (childStatus == Status::kSuccess) {
         Reset();
-        return Status::kFailure;
+        return Status::kSuccess;
+      } else {
+        return Status::kRunning;
       }
-      return Tick();
     }
-    return childStatus;
-  };
+    Reset();
+    return Status::kFailure;
+  }
 
 };
 
