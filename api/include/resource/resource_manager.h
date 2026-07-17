@@ -57,13 +57,9 @@ class ResourceManager {
 
  private:
   std::vector<Resource> resource_map_;
-  /*int amount_of_collected_wood_ = 0;
+  int amount_of_collected_wood_ = 0;
   int amount_of_collected_stone_= building::kLumberjackNeededStoneAmount.amount_;
-  int amount_of_collected_food_ = building::kLumberjackNeededFoodAmount.amount_;*/
-
-  int amount_of_collected_wood_ = 50000;
-  int amount_of_collected_stone_= 50000;
-  int amount_of_collected_food_ = 50000;
+  int amount_of_collected_food_ = building::kLumberjackNeededFoodAmount.amount_;
 
   std::vector<int> harvested_this_frame_;
   std::vector<int> respawned_this_frame_;
